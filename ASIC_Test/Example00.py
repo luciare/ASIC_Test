@@ -18,8 +18,8 @@ from pyqtgraph.parametertree import Parameter, ParameterTree
 import Trees.SignalConfiguration as SigConfig
 import Trees.NiScope as ScopeConfig
 import Trees.NifGenerator as GenConfig
-import Functions.SignalGeneration as SigGen
 
+import Functions.SignalGeneration as SigGen
 import Functions.FileModule as FileMod
 import Functions.TimePlot as TimePlt
 import Functions.PSDPlot as PSDPlt
@@ -65,14 +65,14 @@ class MainWindow(Qt.QWidget):
 
 # #############################Plots##############################
         self.PsdPlotParams = PSDPlt.PSDParameters(name='PSD Plot Options')
-        self.PsdPlotParams.param('Fs').setValue(self.SigParams.Fs.value())
+        self.PsdPlotParams.param('Fs').setValue(self.ScopeParams.FsScope.value())
         self.PsdPlotParams.param('Fmin').setValue(50)
         self.PsdPlotParams.param('nAvg').setValue(50)
         self.Parameters.addChild(self.PsdPlotParams)
 
         self.PlotParams = TimePlt.PlotterParameters(name='Plot options')
-        self.PlotParams.SetChannels({'Row1': 0,})
-        self.PlotParams.param('Fs').setValue(self.SigParams.Fs.value())
+        self.PlotParams.SetChannels(self.ScopeParams.GetRows())
+        self.PlotParams.param('Fs').setValue(self.ScopeParams.FsScope.value())
 
         self.Parameters.addChild(self.PlotParams)
         
@@ -138,11 +138,11 @@ class MainWindow(Qt.QWidget):
         n = round(self.GenParams.FsGen.value()/self.ScopeParams.FsScope.value())
         self.NiScopeParams.FsScope.setValue(self.GenParams.FsGen.value()/n)
         
-        self.PlotParams.param('Fs').setValue(self.ScopeParams.FsScope.value()))
-        self.PsdPlotParams.param('Fs').setValue(self.ScopeParams.FsScope.value()))
+        self.PlotParams.param('Fs').setValue(self.ScopeParams.FsScope.value())
+        self.PsdPlotParams.param('Fs').setValue(self.ScopeParams.FsScope.value())
         self.PlotParams.SetChannels(self.ScopeParams.GetRows())
         self.PlotParams.param('ViewBuffer').setValue(
-        self.ScopeParams.BufferSize.value()/self.ScopeParams.FsScope.value()))
+        self.ScopeParams.BufferSize.value()/self.ScopeParams.FsScope.value())
     
 
     def on_PSDEnable_changed(self):
@@ -192,15 +192,15 @@ class MainWindow(Qt.QWidget):
             # all the parameters and values of Signal configuration class is
             # saved in a class variable. This dictionary can be used as kwargs
             # self.SignalConfigKwargs = self.SigParams.Get_SignalConf_Params()
-            self.ScopeKwargs = self.ScopeConfig.GetRowParams()
-            self.GenConfig = self.GenConfig.GetGenParams()
+            self.ScopeKwargs = self.ScopeParams.GetRowParams()
+            self.GenConfig = self.GenParams.GetGenParams()
             # The dictionary is passed to the genration thread
             self.threadGeneration = SigGen.GenerationThread(self.GenConfig,
                                                             **self.ScopeKwargs)
             # the Qt signal of the generation thread is connected to a
             # function (on_NewSample) so, when the thread emits this signal
             # the specified function will be executed
-            self.threadGeneration.NewGenData.connect(self.on_NewSample)
+            self.threadGeneration.NewData.connect(self.on_NewSample)
             # Time and PSD Plots threads are initialized and started
             self.Gen_Destroy_PsdPlotter()
             self.Gen_Destroy_Plotters()
@@ -220,7 +220,7 @@ class MainWindow(Qt.QWidget):
             # stopped is printed in the console
             print('Stopped')
             # Thread is terminated and set to None
-            self.threadGeneration.NewGenData.disconnect()
+            self.threadGeneration.NewData.disconnect()
             self.threadGeneration.terminate()
             self.threadGeneration = None
             # Plot and PSD threads are stopped
@@ -294,7 +294,7 @@ class MainWindow(Qt.QWidget):
                 PlotterKwargs = self.PlotParams.GetParams()
                 # And is sent to PSDPlotter thread to initialize it
                 self.threadPsdPlotter = PSDPlt.PSDPlotter(ChannelConf=PlotterKwargs['ChannelConf'],
-                                                          nChannels=4,
+                                                          nChannels=len(self.ScopeParams.GetRowsList()),
                                                           **self.PsdPlotParams.GetParams())
                 # Then thread is started
                 self.threadPsdPlotter.start()
@@ -326,7 +326,7 @@ class MainWindow(Qt.QWidget):
             MaxSize = self.FileParams.param('MaxSize').value()
             # The threas is initialized
             self.threadSave = FileMod.DataSavingThread(FileName=FileName,
-                                                       nChannels=4,
+                                                       nChannels=len(self.ScopeParams.GetRowsList()),
                                                        MaxSize=MaxSize,
                                                        Fs = self.SigParams.Fs.value(),
                                                        tWait=self.SigParams.tInterrput.value(),

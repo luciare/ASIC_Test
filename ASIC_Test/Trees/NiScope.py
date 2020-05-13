@@ -109,11 +109,10 @@ NiScopeRowsParam = {'name': 'RowsConfig',
                                              'values': [0.05, 0.2, 1, 6],
                                              'value': 1,
                                              'visible': True
-                                             }
-                                            )},
-                        }  
-
-                         
+                                             })
+                                }),
+                              }
+                       
 ##############################SCOPE##########################################                                
 class NiScopeParameters(pTypes.GroupParameter):
         
@@ -129,7 +128,6 @@ class NiScopeParameters(pTypes.GroupParameter):
         self.FsScope = self.AcqConfig.param('FsScope')
         self.BufferSize = self.AcqConfig.param('BufferSize')
         self.NRows = self.AcqConfig.param('NRow')
-        self.OffsetRows = self.AcqConfig.param('OffsetRows')
         self.tInterrupt = self.AcqConfig.param('tInterrupt')
         self.on_BufferSize_Changed()
         
@@ -226,6 +224,13 @@ class NiScopeParameters(pTypes.GroupParameter):
         for i,r in enumerate(self.Rows):
             RowNames[r]=i
         return RowNames
+    
+    def GetRowsList(self):
+        RowsList = []
+        for i,r in enumerate(self.Rows):
+            RowsList.append(r)
+        return RowsList
+        
 
             
             

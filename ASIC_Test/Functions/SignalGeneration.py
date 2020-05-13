@@ -11,7 +11,7 @@ from PyQt5 import Qt
      
 
 class GenerationThread(Qt.QThread):
-    NewGenData = Qt.pyqtSignal()
+    NewData = Qt.pyqtSignal()
 
     def __init__(self, GenConfig, NRow, tInterrupt, **kwargs):
         '''
@@ -31,7 +31,7 @@ class GenerationThread(Qt.QThread):
         self.GenKwargs = GenConfig
         self.ScopeKwargs = kwargs
         self.tInterrupt = tInterrupt
-        self.FsScope = kwargs['Fs']
+        self.FsScope = kwargs['FsScope']
         self.BufferSize = kwargs['BufferSize']
         self.nRows = NRow
         
@@ -41,7 +41,7 @@ class GenerationThread(Qt.QThread):
 
     def run(self, *args, **kwargs):
         print('start ')      
-        self.OutData = np.ndarray((self.BufferSize, self.nRows)
+        self.OutData = np.ndarray((self.BufferSize, self.nRows))
         self.initSessions()
         loop = Qt.QEventLoop()
         loop.exec_()
@@ -51,12 +51,12 @@ class GenerationThread(Qt.QThread):
             return
         try:
             #Código para realizar el Fetch de adquisición
-            Inputs =
+            # Inputs =
             self.Timer.singleShot(self.tTimer, self.GenData)
             # Código para sacar OutData
             # for i, In in enumerate(Inputs):
             #     self.OutData[:, i] = np.array(In.samples)
-            self.OutData = #matriz 4xvalues
+            # self.OutData = #matriz 4xvalues
             self.NewData.emit()
 
         except Exception:

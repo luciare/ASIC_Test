@@ -10,6 +10,7 @@ import pyqtgraph.parametertree.parameterTypes as pTypes
 import pyqtgraph.parametertree.Parameter as pParams
 
 import numpy as np
+import copy
 
 CarriersConfigParam={'name': 'CarriersConfig',
                     'type': 'group',
@@ -120,7 +121,6 @@ class NifGeneratorParameters(pTypes.GroupParameter):
         self.on_ColConfig_Changed()
         
         self.on_FreqCol_Changed()
-        self.on_AmpCol_Changed() 
         
         self.Freqs = [p.param('Frequency').value() for p in self.CarrierConfig.children()]
         for p in self.CarrierConfig.children():
@@ -140,7 +140,6 @@ class NifGeneratorParameters(pTypes.GroupParameter):
             self.CarrierConfig.addChild(cc)
         for p in self.CarrierConfig.children():
             p.param('Frequency').sigValueChanged.connect(self.on_FreqCol_Changed)
-            p.param('Amplitude').sigValueChanged.connect(self.on_AmpCol_Changed)
       
     def on_FreqCol_Changed(self):
         Fs = self.FsGen.value()
@@ -151,7 +150,6 @@ class NifGeneratorParameters(pTypes.GroupParameter):
             Fnew =  (nc*Fs)/Samps
             p.param('Frequency').setValue(Fnew)
             Gain = 2*p.param('Amplitude').value()
-            p.param('Gain').setValue(Gain)
             
     def GetGenParams(self):       
         """
