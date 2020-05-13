@@ -16,6 +16,8 @@ from PyQt5 import Qt
 from pyqtgraph.parametertree import Parameter, ParameterTree
 
 import Trees.SignalConfiguration as SigConfig
+import Trees.NiScope as ScopeConfig
+import Trees.NifGenerator as GenConfig
 import Functions.SignalGeneration as SigGen
 
 import Functions.FileModule as FileMod
@@ -52,14 +54,14 @@ class MainWindow(Qt.QWidget):
         # QTparent indicades that is going to be added a tree in the actual
         # GUI that has already been created.
         # Name is the name that you want as title of your tree in the GUI
-        self.SigParams = SigConfig.SignalConfig(QTparent=self,
-                                                name='Signal SetUp')
-        self.Parameters.addChild(self.SigParams)
-        # You can create variables of the main class with the values of
-        # an specific tree you have create in a concret GrouParameter class
-        self.GenParams = self.SigParams.param('GeneralConfig')
-        self.CarrParams = self.SigParams.param('CarrierConfig')
-        self.ModParams = self.SigParams.param('ModConfig')
+        self.GenParams = GenConfig.NifGeneratorParameters(QTparent=self,
+                                                          name='Signal Generation SetUp')
+        self.Parameters.addChild(self.GenParams)
+        
+        self.ScopeParams = ScopeConfig.NiScopeParameters(QTparent=self,
+                                                         name='Signal Scope SetUp')
+        self.Parameters.addChild(self.ScopeParams)
+
 
 # #############################Plots##############################
         self.PsdPlotParams = PSDPlt.PSDParameters(name='PSD Plot Options')
@@ -77,9 +79,7 @@ class MainWindow(Qt.QWidget):
 # ############################Instancias for Changes######################
         # Statement sigTreeStateChanged.connect is used to execute a function
         # if any parameter of the indicated tree changes
-        self.GenParams.sigTreeStateChanged.connect(self.on_GenConfig_changed)
-        self.CarrParams.sigTreeStateChanged.connect(self.on_CarrierConfig_changed)
-        self.ModParams.sigTreeStateChanged.connect(self.on_ModConfig_changed)
+        self.ScopeParams.sigTreeStateChanged.connect(self.on_ScopeConfig_changed)
         
         self.PlotParams.param('PlotEnable').sigValueChanged.connect(self.on_PlotEnable_changed)
         self.PlotParams.param('RefreshTime').sigValueChanged.connect(self.on_RefreshTimePlt_changed)
@@ -128,49 +128,22 @@ class MainWindow(Qt.QWidget):
         print('  ----------')
 
 # ############################Changes Emits##############################
-    def on_GenConfig_changed(self):
+    def on_ScopeConfig_changed(self):
         '''
         This function is used to change the Sampling frequency value and 
         nSamples value of plots to the ones specified in the signal configuration
 
         '''
         # All Fs values are changed with SigParams.Fs value
-        self.PlotParams.param('Fs').setValue(self.SigParams.Fs.value())
-        self.PsdPlotParams.param('Fs').setValue(self.SigParams.Fs.value())
-        self.PlotParams.param('ViewBuffer').setValue(
-            self.SigParams.nSamples.value()/self.SigParams.Fs.value())
+        n = round(self.GenParams.FsGen.value()/self.ScopeParams.FsScope.value())
+        self.NiScopeParams.FsScope.setValue(self.GenParams.FsGen.value()/n)
         
-    def on_CarrierConfig_changed(self):
-        '''
-        This function is used to change the Carrier parameters while the
-        program is running
-
-        '''
-        # It is checked if the Thread of generation is active
-        if self.threadGeneration is not None:
-            # Gen Carrier function is called and appropiate parameters are
-            # sent to generate the new waveform
-            SigGen.GenAMSignal(**self.SigParams.Get_SignalConf_Params())
-
-    def on_ModConfig_changed(self):
-        '''
-        This function is used to change the Modulation parameters while the
-        program is running
-
-        '''
-        # It is checked if the Thread of generation is active
-        if self.threadGeneration is not None:
-            if self.ModParams.param('ModType').value() == 'sinusoidal':
-                # GenModulation for a sinusoidal waveform function is called
-                # and appropiate parameters are sent to generate the new
-                # waveform
-                SigGen.GenAMSignal(**self.SigParams.Get_SignalConf_Params())
-
-            if self.ModParams.param('ModType').value() == 'square':
-                # GenModulation for an square waveform function is called
-                # and appropiate parameters are sent to generate the new
-                # waveform
-                SigGen.GenAMSignal(**self.SigParams.Get_SignalConf_Params())
+        self.PlotParams.param('Fs').setValue(self.ScopeParams.FsScope.value()))
+        self.PsdPlotParams.param('Fs').setValue(self.ScopeParams.FsScope.value()))
+        self.PlotParams.SetChannels(self.ScopeParams.GetRows())
+        self.PlotParams.param('ViewBuffer').setValue(
+        self.ScopeParams.BufferSize.value()/self.ScopeParams.FsScope.value()))
+    
 
     def on_PSDEnable_changed(self):
         '''
@@ -218,11 +191,12 @@ class MainWindow(Qt.QWidget):
             # A dictionary created by the function Get_SignalConf_Params, with
             # all the parameters and values of Signal configuration class is
             # saved in a class variable. This dictionary can be used as kwargs
-            self.SignalConfigKwargs = self.SigParams.Get_SignalConf_Params()
-            self.Channels = [0] #Lista del tipo [0, 1, 2, 3]
+            # self.SignalConfigKwargs = self.SigParams.Get_SignalConf_Params()
+            self.ScopeKwargs = self.ScopeConfig.GetRowParams()
+            self.GenConfig = self.GenConfig.GetGenParams()
             # The dictionary is passed to the genration thread
-            self.threadGeneration = SigGen.GenerationThread(self.Channels,
-                                                            **self.SignalConfigKwargs)
+            self.threadGeneration = SigGen.GenerationThread(self.GenConfig,
+                                                            **self.ScopeKwargs)
             # the Qt signal of the generation thread is connected to a
             # function (on_NewSample) so, when the thread emits this signal
             # the specified function will be executed
@@ -278,13 +252,13 @@ class MainWindow(Qt.QWidget):
         # period is printed in the console
         print('Sample time', Ts)
         if self.threadSave is not None:
-            self.threadSave.AddData(self.threadGeneration.OutDataReShape)
+            self.threadSave.AddData(self.threadGeneration.OutData)
             
         if self.threadPlotter is not None:
-            self.threadPlotter.AddData(self.threadGeneration.OutDataReShape)
+            self.threadPlotter.AddData(self.threadGeneration.OutData)
 
         if self.threadPsdPlotter is not None:
-            self.threadPsdPlotter.AddData(self.threadGeneration.OutDataReShape)
+            self.threadPsdPlotter.AddData(self.threadGeneration.OutData)
 
     def Gen_Destroy_Plotters(self):
         '''
@@ -320,7 +294,7 @@ class MainWindow(Qt.QWidget):
                 PlotterKwargs = self.PlotParams.GetParams()
                 # And is sent to PSDPlotter thread to initialize it
                 self.threadPsdPlotter = PSDPlt.PSDPlotter(ChannelConf=PlotterKwargs['ChannelConf'],
-                                                          nChannels=1,
+                                                          nChannels=4,
                                                           **self.PsdPlotParams.GetParams())
                 # Then thread is started
                 self.threadPsdPlotter.start()
@@ -352,7 +326,7 @@ class MainWindow(Qt.QWidget):
             MaxSize = self.FileParams.param('MaxSize').value()
             # The threas is initialized
             self.threadSave = FileMod.DataSavingThread(FileName=FileName,
-                                                       nChannels=1,
+                                                       nChannels=4,
                                                        MaxSize=MaxSize,
                                                        Fs = self.SigParams.Fs.value(),
                                                        tWait=self.SigParams.tInterrput.value(),
