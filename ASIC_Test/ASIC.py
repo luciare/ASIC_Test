@@ -20,6 +20,10 @@ import Functions.FileModule as FileMod
 import Functions.TimePlot as TimePlt
 import Functions.PSDPlot as PSDPlt
 
+##ASIC
+import JoseCodes.BC_COM_AS2_V3 as AS
+
+
 class MainWindow(Qt.QWidget):
     ''' Main Window '''
     def __init__(self):
@@ -32,6 +36,9 @@ class MainWindow(Qt.QWidget):
         # Qt.QPushButton is used to generate a button in the GUI
         self.btnStart = Qt.QPushButton("Start Gen and Adq!")
         layout.addWidget(self.btnStart)
+        
+        self.btnStartSingleAdq = Qt.QPushButton("Single Adq!")
+        layout.addWidget(self.btnStartSingleAdq)
 
 # #############################Save##############################
         self.SaveStateParams = FileMod.SaveTreeSateParameters(QTparent=self,
@@ -50,7 +57,9 @@ class MainWindow(Qt.QWidget):
         self.ASICParams = ASICConfig.ASICParameters(QTparent=self,
                                                     name='ASIC Configuration')
         self.Parameters.addChild(self.ASICParams)
-        
+
+        self.ASIC_C = AS.ASIC(DEBUG =1)
+                
 # ############################GuiConfiguration##############################
         # Is the same as before functions but for 'Parameters' variable,
         # which conatins all the trees of all the Gui, so on_Params_changed
@@ -67,6 +76,9 @@ class MainWindow(Qt.QWidget):
         self.setWindowTitle('MainWindow')
         # It is connected the action of click a button with a function
         self.btnStart.clicked.connect(self.on_btnStart)
+        
+        #Boton adicional
+        self.btnStartSingleAdq.clicked.connect(self.on_btnStartSingleAdq)
 
 # ############################Changes Control##############################
     def on_Params_changed(self, param, changes):
@@ -98,6 +110,33 @@ class MainWindow(Qt.QWidget):
         '''
 
         print('started')
+        
+# ############################Single Adquisition Long##############################
+    def on_btnStartSingleAdq(self):
+        '''
+        This function is executed when the 'start' button is pressed. It is
+        used to initialize the threads, emit signals and data that are
+        necessary durint the execution of the program. Also in this function
+        the different threads starts.
+
+        '''
+        print('########## Starting single Adq ##########')      
+        #Actualizacion de los parametros de configuracion
+        DIC_C = self.ASICParams.GetGenParams()
+        DIC_R = self.ASICParams.GetRowsParams()
+    
+        self.ASIC_C.Dict_To_InstructionSimple(DIC_C)
+        self.ASIC_C.Dict_To_InstructionSimple(DIC_R)
+        
+        #Short Run Adquisicion
+        self.Error,self.Col,self.Sar_0,self.Sar_1,self.Sar_2,self.Sar_3 = self.ASIC_C.ReadAcqS()
+        
+        
+        print('########## Starting single Adq ##########')      
+
+        
+        
+        
         
 # ############################MAIN##############################
 

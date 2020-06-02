@@ -11,7 +11,13 @@ import matplotlib.pyplot as plt
 # import binascii
 import time
 
-import ok
+if __name__ == '__main__':
+    
+    import ok
+
+else:
+    import JoseCodes.ok as ok
+
 
 DEBUG = True
 
@@ -116,6 +122,13 @@ Gain_AFE = { 2 : 0,
              16 :3   
     }
 
+Dic_PB ={
+    4: (0,0),   
+    8: (0,1),   
+    16: (1,0),
+    32:(1,1)
+}
+
 class ASIC_Error(Exception):
     pass
 
@@ -129,7 +142,7 @@ class ASIC:
         
 
     def __init__(self,Clk_Freq_D=Clk_Freq_D, Dac_Dic=Dac_Dic, Row_Translator = Row_Translator, Gain_AFE = Gain_AFE, MAGIC_HEADER=MAGIC_HEADER ,Fclk = "27MHz",DEBUG = 0):
-        
+        print("#########INIT CLASS")
         self.Clk_Freq_D = Clk_Freq_D
         self.Dac_Dic = Dac_Dic
         self.Row_Translator = Row_Translator
@@ -174,7 +187,8 @@ class ASIC:
         if Board_Model == 21:
             if(self.DEBUG):
                 print ("Connected Dev = XEM6310LX45")
-            g = self.xem.ConfigureFPGA('main.bit')
+            
+            g = self.xem.ConfigureFPGA('./JoseCodes/main.bit') ##ALTANTO
             global usb3 
             usb3= 1
     #        a = xem.ConfigureFPGA('main_x.bit')
@@ -1185,7 +1199,79 @@ class ASIC:
             
         return X_Data, Y_Data
 
-
+    
+    def Dict_To_InstructionSimple(self,Data_Gen_Buffer):
+                   
+        for n,c in enumerate(Data_Gen_Buffer):
+                
+                if(c == 'FsClock'):
+                    if(self.DEBUG):
+                        print(c ,Data_Gen_Buffer[c])               
+                    
+                    #Se puede hacer una lista de frequencias??
+                    Freq = Data_Gen_Buffer[c]
+                    
+                    self.FS = float(Freq[:-3])*1.0e6
+                    self.DCM_Config_New_Freq(Freq)    
+                    DCM_Prog_Lock = self.IsDcmProgDone_and_locked()
+                
+                if(c[0:3] == 'DAC'):
+                    if(self.DEBUG):
+                        print(c ,Data_Gen_Buffer[c])
+        
+                    #Se pueden poner limites en el tree? La misma que el Clk_Freq_D
+                    self.Asic_DAC(c[4:],Data_Gen_Buffer[c])
+                    time.sleep(0.1) #Pongo un timer porque no se que tardara el SPI en enviar el dato
+               
+                if(c == 'SCAN'):
+                    if(self.DEBUG):
+                        print(c ,Data_Gen_Buffer[c])
+                    
+                    #Se pueden poner una lista? [4,8,16,32]
+                    self.ASIC_PBx(Data_Gen_Buffer[c])
+                    time.sleep(0.1) #Pongo un timer porque no se que tardara el SPI en enviar el dato
+                
+                if(c == 'MASTER'):
+                    if(self.DEBUG):
+                        print(c ,Data_Gen_Buffer[c])
+                    
+                    #ARRANQUE DE FREQUENCIAS
+                    if Data_Gen_Buffer[c]:
+                        self.ASIC_Mx(Rst=0,ON=1)
+                        time.sleep(0.1)
+                        self.ASIC_Mx(Rst=1,ON=1)
+                        time.sleep(0.1)
+                    
+                    else:
+                        self.ASIC_Mx(Rst=0,ON=0)
+                        time.sleep(0.1)
+            
+                if(c[0:3] == 'Row'):
+                    if(self.DEBUG):
+                        print(c ,Data_Gen_Buffer[c]) 
+                   
+                    ##Primero se tiene que configurar y despues encender la fila
+                    B = self.Row_Translator[c[4:]][0]
+                    F = self.Row_Translator[c[4:]][1]
+            
+                    if (isinstance(Data_Gen_Buffer[c]['Offset Vector'],list)):
+                        
+                        Vect_IN = Data_Gen_Buffer[c]['Offset Vector']
+                    else:
+                        Vect_IN = np.array([Data_Gen_Buffer[c]['Offset Vector']])
+        
+                    self.Asic2_AFE_CAN(B,F,Vect_IN)
+                    time.sleep(0.1)  
+            
+                    #Encendemos si se tiene que encender
+                    if(Data_Gen_Buffer[c]['Enable']):
+                        Gain = Data_Gen_Buffer[c]['Gain']
+                        if(DEBUG):
+                            print ("ENCENDEMOS FILA ", c[4:], " Gain " ,Gain)
+                        self.Asic2_Row_AFE_SAR(B = B ,F = F ,Gain = Gain ,ON = 1 ,RST = 0)
+                        time.sleep(0.1)
+                        self.Asic2_Row_AFE_SAR(B = B ,F = F ,Gain = Gain ,ON = 1 ,RST = 1)
+                        time.sleep(0.1)
 
 #############################################################MAIN
                            
@@ -1298,8 +1384,22 @@ if __name__ == '__main__':
     # AS2.Dict_To_Instruction(RowConf)
     # Esto seria en el start de la gui y tendrias:
     # ASICTree.GetGenParams() y ASICTree.GetRowsParams()
-    DICS = [GeneratorConfig,RowConf]
-    AS2.ConfigAcq(DICS)
+    # DICS = [GeneratorConfig,RowConf]
+    # AS2.ConfigAcq(DICS)
+    
+    ##NUEVA VERSION
+    DIC_C = {'FsClock': '27MHz',
+             'DAC EL': 1.0,
+             'DAC E': 0.9,
+             'DAC COL': 0.9,
+             'SCAN': 16,
+             'MASTER': False}
+    
+    DIC_R = {'Row 1': {'Enable': True, 'Gain': 2, 'Offset Vector': 0}}
+    
+    
+    AS2.Dict_To_InstructionSimple(DIC_C)
+    AS2.Dict_To_InstructionSimple(DIC_R)
     
     #Long Run
     # Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.ReadAcqL()
