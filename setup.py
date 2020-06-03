@@ -1,12 +1,12 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Thu Dec 21 18:30:42 2017
 
-@author: aguimera
+@author: lucia
 """
 
-#  Copyright 2017 Anton Guimerà Brunet <anton.guimera@csic.es>
+#  Copyright 2017 Lucia Re Blanco <lucia.re@imb-cnm.csic.es>
 #
 #  This file is part of PyGFET.
 #
@@ -26,9 +26,9 @@ Created on Thu Dec 21 18:30:42 2017
 
 from setuptools import setup, find_packages
 
-_version = '0.0.1'
+_version = '0.0.0'
 
-long_description = "Library for electrphysiological analysis based on neo"
+long_description = "Library for ASIC Test"
 
 install_requires = ['numpy',
                     'matplotlib',
@@ -51,20 +51,20 @@ classifiers = ['Development Status :: 3 - Alpha',
                'Operating System :: Unix',
                'Operating System :: OS Independent',
                'Programming Language :: Python',
-               'Programming Language :: Python :: 2.7',
+               'Programming Language :: Python :: 3.7',
                'Topic :: Scientific/Engineering',
                'Topic :: Software Development :: User Interfaces']
 
 setup(name="Pyxi",
       version=_version,
-      description="Library for electrphysiological analysis based on neo",
+      description="Library for ASIC Test",
       long_description=long_description,
-      author="Anton Guimera-Brunet",
-      author_email="anton.guimera@csic.es",
-      maintainer="Anton Guimera-Brunet",
-      maintainer_email="anton.guimera@csic.es",
-      url="https://github.com/aguimera/Pyxi",
-      download_url="https://github.com/aguimera/Pyxi",
+      author="Lucia Re-Blanco",
+      author_email="lucia.re@imb-cnm.csic.es",
+      maintainer="Lucia Re-Blanco",
+      maintainer_email="lucia.re@imb-cnm.csic.es",
+      url="https://github.com/luciare/ASIC_Test",
+      download_url="https://github.com/luciare/ASIC_Test",
       license="GPLv3",
       packages=find_packages(),
       classifiers=classifiers,
