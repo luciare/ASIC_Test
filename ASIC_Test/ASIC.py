@@ -21,7 +21,7 @@ import Functions.TimePlot as TimePlt
 import Functions.PSDPlot as PSDPlt
 
 ##ASIC
-import JoseCodes.BC_COM_AS2_V3 as AS
+# import JoseCodes.BC_COM_AS2_V3 as AS
 
 
 class MainWindow(Qt.QWidget):
@@ -58,7 +58,7 @@ class MainWindow(Qt.QWidget):
                                                     name='ASIC Configuration')
         self.Parameters.addChild(self.ASICParams)
 
-        self.ASIC_C = AS.ASIC(DEBUG =1)
+        # self.ASIC_C = AS.ASIC(DEBUG =1)
                 
 # ############################GuiConfiguration##############################
         # Is the same as before functions but for 'Parameters' variable,
@@ -108,7 +108,7 @@ class MainWindow(Qt.QWidget):
         the different threads starts.
 
         '''
-
+        
         print('started')
         
 # ############################Single Adquisition Long##############################
@@ -122,15 +122,25 @@ class MainWindow(Qt.QWidget):
         '''
         print('########## Starting single Adq ##########')      
         #Actualizacion de los parametros de configuracion
-        DIC_C = self.ASICParams.GetGenParams()
-        DIC_R = self.ASICParams.GetRowsParams()
+        # DIC_C = self.ASICParams.GetGenParams()
+        # DIC_R = self.ASICParams.GetRowsParams()
     
-        self.ASIC_C.Dict_To_InstructionSimple(DIC_C)
-        self.ASIC_C.Dict_To_InstructionSimple(DIC_R)
+        # self.ASIC_C.Dict_To_InstructionSimple(DIC_C)
+        # self.ASIC_C.Dict_To_InstructionSimple(DIC_R)
         
-        #Short Run Adquisicion
-        self.Error,self.Col,self.Sar_0,self.Sar_1,self.Sar_2,self.Sar_3 = self.ASIC_C.ReadAcqS()
+        # #Short Run Adquisicion
+        # self.Error,self.Col,self.Sar_0,self.Sar_1,self.Sar_2,self.Sar_3 = self.ASIC_C.ReadAcqS()
         
+        # sense FPGA carregar dades:
+        
+        # convertir sars
+        # cridat plots ams row data (probar amb plt.plot())
+        
+        # desentrallar amb la funcio: 
+        
+        # cridar plots amd data desentrallada (probar amb plt.plot())
+        
+        # Save amb FileModule
         
         print('########## Starting single Adq ##########')      
 
