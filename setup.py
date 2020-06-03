@@ -1,21 +1,21 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-Created on Thu Dec 21 18:30:42 2017
+Created on Wed Jun 03 16:20:42 2020
 
 @author: lucia
 """
 
 #  Copyright 2017 Lucia Re Blanco <lucia.re@imb-cnm.csic.es>
 #
-#  This file is part of PyGFET.
+#  This file is part of ASIC_Test.
 #
-#  PyGFET is free software: you can redistribute it and/or modify
+#  ASIC_Test is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  PyGFET is distributed in the hope that it will be useful,
+#  ASIC_Test is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
@@ -26,7 +26,7 @@ Created on Thu Dec 21 18:30:42 2017
 
 from setuptools import setup, find_packages
 
-_version = '0.0.0'
+_version = '0.0.1'
 
 long_description = "Library for ASIC Test"
 
@@ -51,11 +51,11 @@ classifiers = ['Development Status :: 3 - Alpha',
                'Operating System :: Unix',
                'Operating System :: OS Independent',
                'Programming Language :: Python',
-               'Programming Language :: Python :: 3.7',
+               'Programming Language :: Python :: 2.7',
                'Topic :: Scientific/Engineering',
                'Topic :: Software Development :: User Interfaces']
 
-setup(name="Pyxi",
+setup(name="ASIC_Test",
       version=_version,
       description="Library for ASIC Test",
       long_description=long_description,
