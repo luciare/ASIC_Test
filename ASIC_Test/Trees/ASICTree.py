@@ -107,10 +107,10 @@ RowConf = {'name': 'RowConfig',
                                        'values':Gain_AFE_L,
                                        'value': 2,},
                                      {'name':'Offset Vector',
-                                      'type': 'list', 
-                                      'readonly': True,
-                                      'values': [0,0,0,0,1],##La lista deberia de ser hasta 32 posiciones
-                                      'value': [0,0,0]})}, #aqui va el valor predeterminado de la lista
+                                      'type': 'str', 
+                                      'readonly': False,
+                                      'value': "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"}
+                                     )}, 
                         # {'name':'Row 1',
                         #  'type': 'group',
                         #  'children':({'name': 'Enable',
@@ -159,11 +159,56 @@ class ASICParameters(pTypes.GroupParameter):
 
         self.addChild(GeneratorConfig)
         self.GenConfig = self.param('GeneratorConfig')
+        # self.DACEL = self.GenConfig.param('DAC EL')
         #Poner todos los parámetros a los que se quiera acceder o cambiar
         self.FsClock = self.GenConfig.param('FsClock')
         self.addChild(RowConf)
         self.RowsConfig = self.param('RowConfig')
+        self.RowsConfig.sigTreeStateChanged.connect(self.on_RowsConfig_changed)
+        # self.DACEL.sigValueChanged.connect(self.on_DACEL_changed)
+        
+        
+        #######
+        self.GenConfig.sigTreeStateChanged.connect(self.on_GenConfig_change)
+        
+    def on_RowsConfig_changed(self):
+        for pars in self.RowsConfig.children():
+            if pars.param('Enable').value():
+                self.OffVectStr = ""
+                self.OffVect = pars.param('Offset Vector').value().split(",")
+                for ind in self.OffVect:
+                    if int(ind) < 0:
+                        self.OffVect[self.OffVect.index(ind)] = '0'
+                    elif int(ind) > 6:
+                        self.OffVect[self.OffVect.index(ind)] = '6'
 
+                while len(self.OffVect) < 32:
+                    print("Less than 32 values, adding 0s")
+                    self.OffVect.append('0')
+                while len(self.OffVect) > 32:
+                    print("More than 32 values, removing last values")
+                    self.OffVect.remove(self.OffVect.index(len(self.OffVect)))
+                
+                self.OffVectStr = ','.join(self.OffVect)
+                pars.param('Offset Vector').setValue(self.OffVectStr)
+
+    # def on_DACEL_changed(self):
+    #     if self.DACEL.value() > 1.8:
+    #         self.DACEL.setValue(1.8)
+            
+    def on_GenConfig_change(self):
+        
+        for child in self.GenConfig.children(): 
+            if(child.name()[0:3] == "DAC"):
+                ##Limites dac
+                if(child.value() >= 1.8):
+                    self.GenConfig.param(child.name()).setValue(1.8)
+        
+                if(child.value() <= 0.0):
+                    self.GenConfig.param(child.name()).setValue(0.0)
+            
+            
+            
     def GetFsClock(self):
         Clk_Freq_D ={
                     #Freq: M, D
@@ -176,31 +221,41 @@ class ASICParameters(pTypes.GroupParameter):
                     "6.5MHz": (13    ,   25),
                     "1MHz": (6    ,   50),
                     }
-        FsTuple = Clk_Freq_D[self.FsClock]
-        return FsTuple
-    
+        
+        FsTuple = Clk_Freq_D[self.FsClock.value()]
+        FS = int(self.FsClock.value().replace('MHz',''))*10**6
+        return FS, FsTuple
+
     def GetGenParams(self):
         self.Generator = {}
         for Config in self.GenConfig.children():
            self.Generator[Config.name()] = Config.value()
            
         return self.Generator
-    
+
     def GetRowsParams(self):
-        # self.Rows = {}
-        # for Config in self.RowsConfig.children():
-        #     for Values in Config.children():
-        #         self.Rows[Config.name()][Values.name()] = Values.value()
-        
         self.Rows = {}
         for Config in self.RowsConfig.children():
             Rows_S ={}
             for Values in Config.children():
-                Rows_S[Values.name()] = Values.value()
+                if Values.name() == 'Offset Vector':
+                    Rows_S[Values.name()] = list(map(int,Values.value().split(",")))
+
+                else:
+                    Rows_S[Values.name()] = Values.value()
             self.Rows[Config.name()] = Rows_S
+
+
+        # self.Rows = {}
+        # for Config in self.RowsConfig.children():
+        #     Rows_S ={}
+        #     for Values in Config.children():
+        #         Rows_S[Values.name()] = Values.value()
+        #     self.Rows[Config.name()] = Rows_S
         
+        # return self.Rows
         return self.Rows
-    
+
     def GetRowsParamsDIC(self):
         
         return self.GenConfig
@@ -213,6 +268,10 @@ if __name__ == '__main__':
     n.GetGenParams()
     
     DIC = n.GetRowsParams()
+      
+    n.GenConfig.children()    
+    
+    n.GenConfig["DAC EL"] = 2
 
 
     

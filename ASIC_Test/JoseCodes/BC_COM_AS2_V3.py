@@ -11,12 +11,18 @@ import matplotlib.pyplot as plt
 # import binascii
 import time
 
+from PyQt5 import Qt
+import pyqtgraph.parametertree.parameterTypes as pTypes
+
+
 if __name__ == '__main__':
     
     import ok
+    MainRoute = './main.bit'
 
 else:
     import JoseCodes.ok as ok
+    MainRoute = './JoseCodes/main.bit'
 
 
 DEBUG = True
@@ -132,8 +138,9 @@ Dic_PB ={
 class ASIC_Error(Exception):
     pass
 
-class ASIC:
-    
+class ASIC(Qt.QThread):
+    NewGenData = Qt.pyqtSignal()
+
     def Error(self,Arg,Exc):
         if(Exc):
             raise ASIC_Error(Arg)
@@ -142,6 +149,9 @@ class ASIC:
         
 
     def __init__(self,Clk_Freq_D=Clk_Freq_D, Dac_Dic=Dac_Dic, Row_Translator = Row_Translator, Gain_AFE = Gain_AFE, MAGIC_HEADER=MAGIC_HEADER ,Fclk = "27MHz",DEBUG = 0):
+        # super permits to initialize the classes from which this class depends
+        super(ASIC, self).__init__()
+        
         print("#########INIT CLASS")
         self.Clk_Freq_D = Clk_Freq_D
         self.Dac_Dic = Dac_Dic
@@ -170,7 +180,10 @@ class ASIC:
         #RAM TEST
         if(self.Ram_test(self.MAGIC_HEADER)):
             self.Error("ERROR RAM TEST",0)
-            
+        
+        self.tInterrupt = 1000
+        self.Runs_Completos = 4
+        self.LimiteRuns = 40
             
     def Config_Board(self):
         if self.DEBUG:
@@ -188,7 +201,8 @@ class ASIC:
             if(self.DEBUG):
                 print ("Connected Dev = XEM6310LX45")
             
-            g = self.xem.ConfigureFPGA('./JoseCodes/main.bit') ##ALTANTO
+            # g = self.xem.ConfigureFPGA('./JoseCodes/main.bit') ##ALTANTO
+            g = self.xem.ConfigureFPGA(MainRoute) ##ALTANTO
             global usb3 
             usb3= 1
     #        a = xem.ConfigureFPGA('main_x.bit')
@@ -798,11 +812,6 @@ class ASIC:
         for i in DICS:
             self.Dict_To_Instruction(i)
         
-    def ReadAcqL(self):
-        
-        self.Asic_Read()
-        time.sleep(10)
-        
             
     def Single_Run(self):
         
@@ -1226,7 +1235,9 @@ class ASIC:
                 if(c == 'SCAN'):
                     if(self.DEBUG):
                         print(c ,Data_Gen_Buffer[c])
-                    
+                        
+                    #encendemos el asic    
+                    self.Asic_Write()
                     #Se pueden poner una lista? [4,8,16,32]
                     self.ASIC_PBx(Data_Gen_Buffer[c])
                     time.sleep(0.1) #Pongo un timer porque no se que tardara el SPI en enviar el dato
@@ -1272,6 +1283,131 @@ class ASIC:
                         time.sleep(0.1)
                         self.Asic2_Row_AFE_SAR(B = B ,F = F ,Gain = Gain ,ON = 1 ,RST = 1)
                         time.sleep(0.1)
+
+
+    def StopRun(self):
+        
+        self.Asic_Write()
+        time.sleep(0.1)
+
+        # ##Volvemos a poner el MUX en la posicion de PLL 
+        a = self.Switch_ON_OFF_WireInPos(Add_Reset_MOD_IN,9, 0)  
+        a = self.Switch_ON_OFF_WireInPos(Add_Reset_MOD_IN,8, 0)      
+
+        time.sleep(0.1)
+
+
+    def run(self):
+        '''
+        Run function in threads is the loop that will start when thread is
+        started.
+        Returns
+        -------
+        None.
+        '''
+        # while True statement is used to generate a lopp in the run function
+        # so, while the thread is active, the while loop is running
+        
+        #Asic en modo lectura
+        # self.Asic_Read()
+        
+        # a = self.Switch_ON_OFF_WireInPos(Add_Reset_MOD_IN,8, 1)      
+        # time.sleep(10)
+        
+        ##encendemos el ASIC en modo lectura i esperamos a que se llene la RAM
+        # self.Single_Run_E()
+        self.inte = 0
+        while True:
+            # the generation is started
+            # The dictionary SigConfig is passed to SignalGenerator class as
+            # kwargs, this means you can send the full dictionary and only use
+            # the variables in which you are interesed in
+            
+            #Unidad minima son 1024 bytes (las palabras con de 2 bytes)
+            #Cada RunCompleto equivale a 2560000 bytes 
+            #Si FS = 27MHz tenemos 27e6/2.0/32.0 = 421875 Hz cada trama de 64 bits
+            #Entonces 2560000 bytes * 8 / 64 bits = 320000 Tramas
+            #En tiempo seria 320000 Tramas / 421875 Hz = 0.75 segundos de captura
+            
+# =============================================================================
+#             if(self.NumOfWordsRam() >= 2*(2560000*self.Runs_Completos/2.0)):
+#                 
+#                 self.OutData = self.Fetch(self.Runs_Completos)
+#                 
+#                 self.NewGenData.emit()
+#                 self.inte = self.inte + 1
+#             
+#             print("Inside Run " , self.NumOfWordsRam(), " int ", self.inte )
+# =============================================================================
+
+            self.OutData = np.arange(0,1024,1)
+            self.inte = self.inte + 1
+            print("Inside Run " , " int ", self.inte )
+            
+
+            Qt.QThread.msleep(self.tInterrupt)
+
+    def RunLocal(self):
+        '''
+        Run function in threads is the loop that will start when thread is
+        started.
+        Returns
+        -------
+        None.
+        '''
+        # while True statement is used to generate a lopp in the run function
+        # so, while the thread is active, the while loop is running
+        
+        #Asic en modo lectura
+        self.Asic_Read()
+        
+        a = self.Switch_ON_OFF_WireInPos(Add_Reset_MOD_IN,8, 1)      
+        time.sleep(10)
+        
+        ##encendemos el ASIC en modo lectura i esperamos a que se llene la RAM
+        self.Single_Run_E()
+        self.inte = 0
+        
+        #Buffer ByteArray
+        self.OutData = []
+
+        # while True:
+        Salida = 1
+        while(Salida):            
+            # the generation is started
+            # The dictionary SigConfig is passed to SignalGenerator class as
+            # kwargs, this means you can send the full dictionary and only use
+            # the variables in which you are interesed in
+            
+            #Unidad minima son 1024 bytes (las palabras con de 2 bytes)
+            #Cada RunCompleto equivale a 2560000 bytes 
+            #Si FS = 27MHz tenemos 27e6/2.0/32.0 = 421875 Hz cada trama de 64 bits
+            #Entonces 2560000 bytes * 8 / 64 bits = 320000 Tramas
+            #En tiempo seria 320000 Tramas / 421875 Hz = 0.75 segundos de captura
+            
+            if(self.NumOfWordsRam() >= 2*(2560000*self.Runs_Completos/2.0)):
+                
+                Buffer = self.Fetch(self.Runs_Completos)
+                
+                if(self.inte == 0):
+                    self.OutData =  Buffer
+                else:
+                    self.OutData = self.OutData + Buffer
+                
+                self.inte = self.inte + 1
+            
+            time.sleep(1)
+            print("Inside RunLocal " , self.NumOfWordsRam(), " int ", self.inte )
+            
+            if(self.inte >= self.LimiteRuns):
+                print("End RunLocal")
+                # break
+                Salida = 0
+            
+        #Paramos el ASIC
+        self.StopRun()
+        
+
 
 #############################################################MAIN
                            
@@ -1389,48 +1525,79 @@ if __name__ == '__main__':
     
     ##NUEVA VERSION
     DIC_C = {'FsClock': '27MHz',
-             'DAC EL': 1.0,
-             'DAC E': 0.9,
-             'DAC COL': 0.9,
-             'SCAN': 16,
+             'DAC EL': 1.6,
+             'DAC E': 0.94,
+             'DAC COL': 0.94,
+             'SCAN': 4,
              'MASTER': False}
     
-    DIC_R = {'Row 1': {'Enable': True, 'Gain': 2, 'Offset Vector': 0}}
+    DIC_R = {'Row 0': {'Enable': True, 'Gain': 2, 'Offset Vector': 0}}
     
     
     AS2.Dict_To_InstructionSimple(DIC_C)
     AS2.Dict_To_InstructionSimple(DIC_R)
     
     #Long Run
-    # Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.ReadAcqL()
+    Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.ReadAcqL()
     
     #Short Run
-    Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.ReadAcqS()
+    # Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.ReadAcqS()
     
+    #Multiples Runs
+# =============================================================================
+#     #Variables
+#     AS2.Runs_Completos = 8
+#     AS2.LimiteRuns = 2*13 #13 (6.5 con 8)  aproximadamente lo que se hacia antes para 40 segundos
+#     
+#     Inicio = time.time()
+#     
+#     AS2.RunLocal()
+#     # Buffer_Fetch  = AS2.OutData
+#     print("Tiempo Captura ",time.time()-Inicio, " s")
+#     print("Bitstream Init...")
+#     Buffer_bitstream =ConstBitStream(AS2.OutData)
+#     Buffer_Str = Buffer_bitstream.bin 
+#     
+#     print("Bistream_Completo..." ,time.time()-Inicio, " s")
+#     print("Parsing...")
+#     
+#     Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.Bitstream_to_Sep(Buffer_Str=Buffer_Str)
+#     print("Parsing Completo...",time.time()-Inicio, " s")
+# =============================================================================
     
+    if(Error):
+    
+        print("ERROR en la Captura") 
     
     # AS2.ASIC_Off()
     
     #Gravar en fichero
+    print("Saving Files...")
+    
+    
+    print ("Len Sar 0", len(Sar_0))
+    print ("Len Sar 1", len(Sar_1))
+    print ("Len Sar 2", len(Sar_2))
+    print ("Len Sar 3", len(Sar_3))
 
-    letra = '2000504_Sar_CDS_11111111111'
+    letra = '2000504_Sar_CDS_121'
     
     path_f = "/home/jcisneros/Downloads/DAta_rouleta"
     
     file_name = "SAR_0_AS2t" + letra + ".txt"
     
-    
     AS2.Gravar_M_Conversion(path=path_f,filename=file_name,Data=Sar_0,Limite= len(Sar_0),Conversion=1)
     
-    file_name = "SAR_1_AS2t" + letra + ".txt"
+    # file_name = "SAR_1_AS2t" + letra + ".txt"
     
-    AS2.Gravar_M_Conversion(path=path_f,filename=file_name,Data=Sar_1,Limite= len(Sar_1),Conversion=1)
+    # AS2.Gravar_M_Conversion(path=path_f,filename=file_name,Data=Sar_1,Limite= len(Sar_1),Conversion=1)
     
-    file_name = "SAR_2_AS2t" + letra + ".txt"
+    # file_name = "SAR_2_AS2t" + letra + ".txt"
     
-    AS2.Gravar_M_Conversion(path=path_f,filename=file_name,Data=Sar_2,Limite= len(Sar_2),Conversion=1)
+    # AS2.Gravar_M_Conversion(path=path_f,filename=file_name,Data=Sar_2,Limite= len(Sar_2),Conversion=1)
     
-    file_name = "SAR_3_AS2t" + letra + ".txt"
+    # file_name = "SAR_3_AS2t" + letra + ".txt"
     
-    AS2.Gravar_M_Conversion(path=path_f,filename=file_name,Data=Sar_3,Limite= len(Sar_3),Conversion=1)
+    # AS2.Gravar_M_Conversion(path=path_f,filename=file_name,Data=Sar_3,Limite= len(Sar_3),Conversion=1)
     
+    print("Saving Files...")

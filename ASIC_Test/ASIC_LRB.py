@@ -100,6 +100,7 @@ class MainWindow(Qt.QWidget):
         print('  data:      %s' % str(data))
         print('  ----------')
         
+        
 # ############################START##############################
     def on_btnStart(self):
         '''
