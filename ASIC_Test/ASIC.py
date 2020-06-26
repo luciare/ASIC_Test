@@ -16,13 +16,23 @@ from pyqtgraph.parametertree import Parameter, ParameterTree
 
 import Trees.ASICTree as ASICConfig
 # import Functions.SignalGeneration as SigGen
-import Functions.FileModule as FileMod
-import Functions.TimePlot as TimePlt
-import Functions.PSDPlot as PSDPlt
+# import Functions.FileModule as FileMod
+# import Functions.TimePlot as TimePlt
+# import Functions.PSDPlot as PSDPlt
+
+import PyqtTools.FileModule as FileMod
+from PyqtTools.PlotModule import Plotter as TimePlt
+from PyqtTools.PlotModule import PlotterParameters as TimePltPars
+from PyqtTools.PlotModule import PSDPlotter as PSDPlt
+from PyqtTools.PlotModule import PSDParameters as PSDPltPars
 
 
+DEBUG = 0
 ##ASIC
-import JoseCodes.BC_COM_AS2_V3 as AS
+if DEBUG == 0:
+    from JoseCodes.BC_COM_AS2_V4 import ThreadAcq as AS_Thread
+    from JoseCodes.BC_COM_AS2_V4 import ASIC as AS
+    
 from bitstring import ConstBitStream
 
 
@@ -42,28 +52,47 @@ class MainWindow(Qt.QWidget):
         self.btnStartSingleAdq = Qt.QPushButton("Single Adq!")
         layout.addWidget(self.btnStartSingleAdq)
         
+        self.ResetGraph = Qt.QPushButton("Reset Graphics")
+        layout.addWidget(self.ResetGraph)
+        
         #Eliminar########################################
         self.btnSaveData= Qt.QPushButton("Save Data")
         layout.addWidget(self.btnSaveData)
         #################################################
-
-
+        
+        # Set threads as None
+        self.threadGeneration = None
+        self.threadPlotter = None
+        self.threadPsdPlotter = None
+        self.threadSave = None
+        
 # #############################Save##############################
-        self.SaveStateParams = FileMod.SaveTreeSateParameters(QTparent=self,
-                                                              name='State')
+
+        self.SaveStateParams = FileMod.SaveSateParameters(QTparent=self,
+                                                          name='FileState',
+                                                          title='Save/load config')
         # With this line, it is initize the group of parameters that are
         # going to be part of the full GUI
         self.Parameters = Parameter.create(name='params',
                                            type='group',
                                            children=(self.SaveStateParams,))
+        
 # #############################File##############################
         self.FileParams = FileMod.SaveFileParameters(QTparent=self,
                                                      name='Record File')
         self.Parameters.addChild(self.FileParams)
 
 # #############################Plot Parameters#### REVISARRRR
-        self.PlotParams = TimePlt.PlotterParameters(name='Plot options')
+        
+        self.PlotParams = TimePltPars(name='TimePlt',
+                                      title='Time Plot Options')
+        
         self.Parameters.addChild(self.PlotParams)
+
+        self.PsdPlotParams = PSDPltPars(name='PSDPlt',
+                                                title='PSD Plot Options')
+        
+        self.Parameters.addChild(self.PsdPlotParams)
 
 
 # #############################ASIC##############################
@@ -72,9 +101,33 @@ class MainWindow(Qt.QWidget):
         self.Parameters.addChild(self.ASICParams)
         
         ##ASIC 2 Class
-        self.ASIC_C = AS.ASIC(DEBUG =1)
+        if DEBUG == 0:
+            self.ASIC_C = AS(DEBUG =1)
         self.ParamChange = 1
                 
+        # Connect event for managing event
+        
+        self.ASICParams.NewConf.connect(self.on_NewASICConf)
+        
+        self.PsdPlotParams.NewConf.connect(self.on_NewPSDConf)
+        self.PlotParams.NewConf.connect(self.on_NewPlotConf)
+
+        # Event for debug print of changes
+        # self.Parameters.sigTreeStateChanged.connect(self.on_Params_changed)
+
+        # First call of some events for initializations
+        self.on_NewASICConf()
+        
+        # Event of main button start and stop
+        self.ResetGraph.clicked.connect(self.on_ResetGraph)
+        
+        self.btnStart.clicked.connect(self.on_btnStart)
+        
+        #Boton adicional
+        self.btnStartSingleAdq.clicked.connect(self.on_btnStartSingleAdq)
+        
+        self.btnSaveData.clicked.connect(self.on_btnSaveData)
+        
 # ############################GuiConfiguration##############################
         # Is the same as before functions but for 'Parameters' variable,
         # which conatins all the trees of all the Gui, so on_Params_changed
@@ -89,20 +142,7 @@ class MainWindow(Qt.QWidget):
 
         self.setGeometry(550, 10, 300, 700)
         self.setWindowTitle('MainWindow')
-        # It is connected the action of click a button with a function
-        self.btnStart.clicked.connect(self.on_btnStart)
-        
-        #Boton adicional
-        self.btnStartSingleAdq.clicked.connect(self.on_btnStartSingleAdq)
-        
-        self.btnSaveData.clicked.connect(self.on_btnSaveData)
 
-
-        # Set threads as None
-        self.threadGeneration = None
-        self.threadPlotter = None
-        self.threadPsdPlotter = None
-        self.threadSave = None
 
 # ############################Changes Control##############################
     def on_Params_changed(self, param, changes):
@@ -126,6 +166,60 @@ class MainWindow(Qt.QWidget):
         #Flag
         self.ParamChange
         
+        
+    def on_NewASICConf(self):
+        self.PlotParams.SetChannels(self.ASICParams.GetChannels())
+        self.PsdPlotParams.ChannelConf = self.PlotParams.ChannelConf
+        nChannels = self.PlotParams.param('nChannels').value()
+        self.PsdPlotParams.param('nChannels').setValue(nChannels)
+
+        Fs = self.ASICParams.Fs
+        print(Fs)
+        nCols = self.ASICParams.nCols
+        Fs = Fs/2.0/32.0/nCols
+        
+        self.PlotParams.param('Fs').setValue(Fs)
+        self.PsdPlotParams.param('Fs').setValue(Fs)
+        
+        
+
+    def on_NewPSDConf(self):
+        if self.threadPsdPlotter is not None:
+            nFFT = self.PsdPlotParams.param('nFFT').value()
+            nAvg = self.PsdPlotParams.param('nAvg').value()
+            self.threadPsdPlotter.InitBuffer(nFFT=nFFT, nAvg=nAvg)
+
+    def on_NewPlotConf(self):
+        if self.threadPlotter is not None:
+            ViewTime = self.PlotParams.param('ViewTime').value()
+            self.threadPlotter.SetViewTime(ViewTime)        
+            RefreshTime = self.PlotParams.param('RefreshTime').value()
+            self.threadPlotter.SetRefreshTime(RefreshTime)        
+
+    def on_ResetGraph(self):
+        if self.threadGeneration is None:
+            return
+
+        # Plot and PSD threads are stopped
+        if self.threadPlotter is not None:
+            self.threadPlotter.stop()
+            self.threadPlotter = None
+
+        if self.threadPsdPlotter is not None:
+            self.threadPsdPlotter.stop()
+            self.threadPsdPlotter = None
+
+        if self.PlotParams.param('PlotEnable').value():
+            Pltkw = self.PlotParams.GetParams()
+            self.threadPlotter = TimePlt(**Pltkw)
+            self.threadPlotter.start()
+
+        if self.PsdPlotParams.param('PlotEnable').value():
+            PSDKwargs = self.PsdPlotParams.GetParams()
+            self.threadPsdPlotter = PSDPlt(**PSDKwargs)
+            self.threadPsdPlotter.start()        
+        
+        
 # ############################START##############################
     def on_btnStart(self):
         '''
@@ -144,53 +238,67 @@ class MainWindow(Qt.QWidget):
             DIC_R = self.ASICParams.GetRowsParams()
             
             #Chapuza
-            self.threadGeneration = self.ASIC_C
+            # self.threadGeneration = self.ASIC_C
+            self.threadGeneration = AS_Thread(ASP = self.ASIC_C,nChannels = self.ASICParams.nChannels,nCols = self.ASICParams.nCols,Scale = [2,2,2,2])
             
             #Solo aplicar cambios si es necesario
             if(self.ParamChange):
-                self.threadGeneration.Dict_To_InstructionSimple(DIC_C)
-                self.threadGeneration.Dict_To_InstructionSimple(DIC_R)
+                self.ASIC_C.Dict_To_InstructionSimple(DIC_C)
+                self.ASIC_C.Dict_To_InstructionSimple(DIC_R)
                 self.ParamChange = 0
             
             #Runs completos
-            self.threadGeneration.Runs_Completos = 4
-            self.threadGeneration.tInterrupt = 1000
+            self.ASIC_C.Runs_Completos = self.ASICParams.RunsCompletos
+            self.ASIC_C.tInterrupt = 1000
             
             self.threadGeneration.NewGenData.connect(self.on_NewSample)
+            
+            
+            
+            if self.FileParams.param('Enabled').value():
+                FilekwArgs = {'FileName': self.FileParams.FilePath(),
+                              'nChannels': self.ASICParams.nChannels,
+                              'Fs': None,
+                              'ChnNames': None,
+                              'MaxSize': None,
+                              'dtype': 'float',
+                              }
+                self.threadSave = FileMod.DataSavingThread(**FilekwArgs)
+            
+                self.threadSave.start()
+            #Reset Plots
+            self.on_ResetGraph()
             
             # Start generation
             self.OldTime = time.time()
             self.threadGeneration.start()
             self.btnStart.setText("Stop Gen and Adq!")
-            
-            self.Sar_0 = []
-            self.Sar_1 = []
-            self.Sar_2 = []
-            self.Sar_3 = []           
-            
-            # #Short Run Adquisicion
-            # self.Error,self.Col,self.Sar_0,self.Sar_1,self.Sar_2,self.Sar_3 = self.ASIC_C.ReadAcqS()
-            
-            # sense FPGA carregar dades:
-            
-            # convertir sars
-            # cridat plots ams row data (probar amb plt.plot())
-            
-        # desentrallar amb la funcio: 
-        
-        # cridar plots amd data desentrallada (probar amb plt.plot())
-        
-        # Save amb FileModule    
         
         else:
             print('########## Stoping Adquisition  ##########')   
             #Pone el ASIC en Standby
-            self.threadGeneration.StopRun()
+            self.ASIC_C.StopRun()
             
             # Thread is terminated and set to None
             self.threadGeneration.NewGenData.disconnect()
             self.threadGeneration.terminate()
             self.threadGeneration = None
+        
+         # Plot and PSD threads are stopped
+            if self.threadPlotter is not None:
+                self.threadPlotter.stop()
+                self.threadPlotter = None
+
+            if self.threadPsdPlotter is not None:
+                self.threadPsdPlotter.stop()
+                self.threadPsdPlotter = None
+
+            # Also save thread is stopped
+            if self.threadSave is not None:
+                self.threadSave.stop()
+                self.threadSave = None
+            # Button text is changed again
+            self.btnStart.setText("Start Gen and Adq!")
         
                         
 # ############################Single Adquisition Long##############################
@@ -226,17 +334,6 @@ class MainWindow(Qt.QWidget):
             self.threadGeneration.StopRun()
             self.threadGeneration = None
             
-            # sense FPGA carregar dades:
-            
-            # convertir sars
-            # cridat plots ams row data (probar amb plt.plot())
-            
-            # desentrallar amb la funcio: 
-        
-            # cridar plots amd data desentrallada (probar amb plt.plot())
-        
-            # Save amb FileModule    
-        
         else:
             print('########## Stoping single Adq ##########')      
 
@@ -249,58 +346,15 @@ class MainWindow(Qt.QWidget):
         # Debug print of interruption time
         print('Sample time', Ts)
         # print('Data ', self.threadGeneration.OutData)
-        
-
-        Buffer_bitstream =ConstBitStream(self.threadGeneration.OutData)
-        Buffer_Str = Buffer_bitstream.bin 
-        
-        self.Error,self.Col,self.Sar_0_I,self.Sar_1_I,self.Sar_2_I,self.Sar_3_I = self.threadGeneration.Bitstream_to_Sep(Buffer_Str=Buffer_Str)
-        
-        if(self.Error):
-
-            print("ERROR threadGeneration Captura")
-        
-        else:
-            self.Sar_0 = np.append(self.Sar_0,self.Sar_0_I)
-            self.Sar_1 = np.append(self.Sar_1,self.Sar_1_I)
-            self.Sar_2 = np.append(self.Sar_2,self.Sar_2_I)
-            self.Sar_3 = np.append(self.Sar_3,self.Sar_3_I)
-            
+                            
         if self.threadPlotter is not None:
             self.threadPlotter.AddData(self.threadGeneration.OutData)
-        
-        
-    def on_NewPlotConf(self):
-        if self.threadPlotter is not None:
-            ViewTime = self.PlotParams.param('ViewTime').value()
-            self.threadPlotter.SetViewTime(ViewTime)        
-            RefreshTime = self.PlotParams.param('RefreshTime').value()
-            self.threadPlotter.SetRefreshTime(RefreshTime)      
             
-    def on_ResetGraph(self):
-        if self.threadGeneration is None:
-            return
-
-        # Plot and PSD threads are stopped
-        if self.threadPlotter is not None:
-            self.threadPlotter.stop()
-            self.threadPlotter = None
+        if self.threadSave is not None:
+            self.threadSave.AddData(self.threadGeneration.OutData)
 
         if self.threadPsdPlotter is not None:
-            self.threadPsdPlotter.stop()
-            self.threadPsdPlotter = None
-
-        if self.PlotParams.param('PlotEnable').value():
-            Pltkw = self.PlotParams.GetParams()
-            self.threadPlotter = TimePlt(**Pltkw)
-            self.threadPlotter.start()
-
-        if self.PsdPlotParams.param('PlotEnable').value():
-            PSDKwargs = self.PsdPlotParams.GetParams()
-            self.threadPsdPlotter = PSDPlt(**PSDKwargs)
-            self.threadPsdPlotter.start()
-    
-    
+            self.threadPsdPlotter.AddData(self.threadGeneration.OutData)
     
     
     ###########ELIMINAR

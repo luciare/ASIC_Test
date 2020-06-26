@@ -85,12 +85,16 @@ GeneratorConfig =  {'name': 'GeneratorConfig',
                                 {'name': 'SCAN',
                                  'title': 'Column Scan',
                                  'values' : Dic_PB_L,
-                                 'value': 4,
+                                 'value': 1,
                                  'type': 'list'},     
                                 {'name': 'MASTER',
                                  'title': 'Master ON',
                                  'value': False,
-                                 'type': 'bool'},     
+                                 'type': 'bool'},  
+                                {'name': 'Runs',
+                                 'title': 'Runs completos',
+                                 'value': 8,
+                                 'type': 'int'},  
                                 
                                 )}    
     
@@ -111,49 +115,57 @@ RowConf = {'name': 'RowConfig',
                                       'readonly': False,
                                       'value': "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"}
                                      )}, 
-                        # {'name':'Row 1',
-                        #  'type': 'group',
-                        #  'children':({'name': 'Enable',
-                        #                'type': 'bool',
-                        #                'value': False,},
-                        #              {'name': 'Gain',
-                        #                'type': 'int',
-                        #                'value': 2,},
-                        #              {'name':'Offset Vector',
-                        #               'type': 'int', ##Lista de valores???
-                        #               'readonly': True,
-                        #               'value': [0,0,0,0,0]})}, ##La lista deberia de ser hasta 32 posiciones
-                        # {'name':'Row 2',
-                        #  'type': 'group',
-                        #  'children':({'name': 'Enable',
-                        #                'type': 'bool',
-                        #                'value': False,},
-                        #              {'name': 'Gain',
-                        #                'type': 'int',
-                        #                'value': 2,},
-                        #              {'name':'Offset Vector',
-                        #               'type': 'int', ##Lista de valores???
-                        #               'readonly': True,
-                        #               'value': [0,0,0,0,0]})}, ##La lista deberia de ser hasta 32 posiciones
-    
-                        # {'name':'Row 3',
-                        #  'type': 'group',
-                        #  'children':({'name': 'Enable',
-                        #                'type': 'bool',
-                        #                'value': False,},
-                        #              {'name': 'Gain',
-                        #                'type': 'int',
-                        #                'value': 2,},
-                        #              {'name':'Offset Vector',
-                        #               'type': 'int', ##Lista de valores???
-                        #               'readonly': True,
-                        #               'value': [0,0,0,0,0]})}, ##La lista deberia de ser hasta 32 posiciones
-    
+                        {'name':'Row 1',
+                         'type': 'group',
+                         'children':({'name': 'Enable',
+                                       'type': 'bool',
+                                       'value': True,},
+                                     {'name': 'Gain',
+                                       'type': 'list',
+                                       'values':Gain_AFE_L,
+                                       'value': 2,},
+                                     {'name':'Offset Vector',
+                                      'type': 'str', 
+                                      'readonly': False,
+                                      'value': "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"}
+                                     )}, 
+                        {'name':'Row 2',
+                         'type': 'group',
+                         'children':({'name': 'Enable',
+                                       'type': 'bool',
+                                       'value': True,},
+                                     {'name': 'Gain',
+                                       'type': 'list',
+                                       'values':Gain_AFE_L,
+                                       'value': 2,},
+                                     {'name':'Offset Vector',
+                                      'type': 'str', 
+                                      'readonly': False,
+                                      'value': "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"}
+                                     )}, 
+                        {'name':'Row 3',
+                         'type': 'group',
+                         'children':({'name': 'Enable',
+                                       'type': 'bool',
+                                       'value': True,},
+                                     {'name': 'Gain',
+                                       'type': 'list',
+                                       'values':Gain_AFE_L,
+                                       'value': 2,},
+                                     {'name':'Offset Vector',
+                                      'type': 'str', 
+                                      'readonly': False,
+                                      'value': "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"}
+                                     )}, 
+      
+                        
                                   ) 
                      }
 
 ##############################ASIC##########################################
 class ASICParameters(pTypes.GroupParameter):
+    
+    NewConf = Qt.pyqtSignal()
     def __init__(self, **kwargs):
         pTypes.GroupParameter.__init__(self, **kwargs)
 
@@ -161,12 +173,18 @@ class ASICParameters(pTypes.GroupParameter):
         self.GenConfig = self.param('GeneratorConfig')
         # self.DACEL = self.GenConfig.param('DAC EL')
         #Poner todos los parámetros a los que se quiera acceder o cambiar
-        self.FsClock = self.GenConfig.param('FsClock')
+        self.Fs = int(self.GenConfig.param('FsClock').value().replace('MHz',''))*10**6
+        
         self.addChild(RowConf)
         self.RowsConfig = self.param('RowConfig')
         self.RowsConfig.sigTreeStateChanged.connect(self.on_RowsConfig_changed)
-        # self.DACEL.sigValueChanged.connect(self.on_DACEL_changed)
+
+    
+        self.nRows = len(self.RowsConfig.children())
+        self.nCols = self.GenConfig.param('SCAN').value()
+        self.nChannels = self.nRows * self.nCols
         
+        self.RunsCompletos = self.GenConfig.param('Runs').value()
         
         #######
         self.GenConfig.sigTreeStateChanged.connect(self.on_GenConfig_change)
@@ -191,10 +209,12 @@ class ASICParameters(pTypes.GroupParameter):
                 
                 self.OffVectStr = ','.join(self.OffVect)
                 pars.param('Offset Vector').setValue(self.OffVectStr)
+            
+        self.nRows = len(self.RowsConfig.children())
+        self.nChannels = self.nRows * self.nCols
+        self.NewConf.emit()
 
-    # def on_DACEL_changed(self):
-    #     if self.DACEL.value() > 1.8:
-    #         self.DACEL.setValue(1.8)
+
             
     def on_GenConfig_change(self):
         
@@ -206,9 +226,14 @@ class ASICParameters(pTypes.GroupParameter):
         
                 if(child.value() <= 0.0):
                     self.GenConfig.param(child.name()).setValue(0.0)
-            
-            
-            
+        
+        self.nCols = self.GenConfig.param('SCAN').value()
+        self.nChannels = self.nRows * self.nCols
+        self.Fs = int(self.GenConfig.param('FsClock').value().replace('MHz',''))*10**6
+        self.RunsCompletos = self.GenConfig.param('Runs').value()
+
+        self.NewConf.emit()
+    
     def GetFsClock(self):
         Clk_Freq_D ={
                     #Freq: M, D
@@ -261,6 +286,21 @@ class ASICParameters(pTypes.GroupParameter):
         return self.GenConfig
     
     
+    def GetChannels(self):
+        """
+        Return the channels dictionary.
+        Returns
+        -------
+        Channels : Dictionary, where key is the channel name
+                   and value is an integer which indicate the index of the
+                   input data array.
+        """
+        Channels = {}
+        for i in range(self.nChannels):
+            Name = 'Ch' + str(i)
+            Channels[Name] = i
+        return Channels
+    
 if __name__ == '__main__':
 
     n = ASICParameters(name='ASIC Configuration')
@@ -273,5 +313,10 @@ if __name__ == '__main__':
     
     n.GenConfig["DAC EL"] = 2
 
-
+    n.GenConfig.param('SCAN').value()
     
+    n.nChannels    
+    n.nRows
+    n.nCols
+    
+    n.GenConfig.param('SCAN').setValue(1)

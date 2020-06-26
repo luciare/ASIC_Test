@@ -18,11 +18,11 @@ import pyqtgraph.parametertree.parameterTypes as pTypes
 if __name__ == '__main__':
     
     import ok
-    MainRoute = './main.bit'
+    MainRoute = './main_200624.bit'
 
 else:
     import JoseCodes.ok as ok
-    MainRoute = './JoseCodes/main.bit'
+    MainRoute = './JoseCodes/main_200624.bit'
 
 
 DEBUG = True
@@ -129,6 +129,7 @@ Gain_AFE = { 2 : 0,
     }
 
 Dic_PB ={
+    1: (0,0),
     4: (0,0),   
     8: (0,1),   
     16: (1,0),
@@ -138,8 +139,7 @@ Dic_PB ={
 class ASIC_Error(Exception):
     pass
 
-class ASIC(Qt.QThread):
-    NewGenData = Qt.pyqtSignal()
+class ASIC():
 
     def Error(self,Arg,Exc):
         if(Exc):
@@ -150,7 +150,6 @@ class ASIC(Qt.QThread):
 
     def __init__(self,Clk_Freq_D=Clk_Freq_D, Dac_Dic=Dac_Dic, Row_Translator = Row_Translator, Gain_AFE = Gain_AFE, MAGIC_HEADER=MAGIC_HEADER ,Fclk = "27MHz",DEBUG = 0):
         # super permits to initialize the classes from which this class depends
-        super(ASIC, self).__init__()
         
         print("#########INIT CLASS")
         self.Clk_Freq_D = Clk_Freq_D
@@ -461,7 +460,7 @@ class ASIC(Qt.QThread):
     def ASIC_PBx(self,val):
         
         Dic ={
-            0: (0,0), 
+            1: (0,0), 
             4: (0,0),   
             8: (0,1),   
             16: (1,0),
@@ -1297,56 +1296,6 @@ class ASIC(Qt.QThread):
         time.sleep(0.1)
 
 
-    def run(self):
-        '''
-        Run function in threads is the loop that will start when thread is
-        started.
-        Returns
-        -------
-        None.
-        '''
-        # while True statement is used to generate a lopp in the run function
-        # so, while the thread is active, the while loop is running
-        
-        #Asic en modo lectura
-        # self.Asic_Read()
-        
-        # a = self.Switch_ON_OFF_WireInPos(Add_Reset_MOD_IN,8, 1)      
-        # time.sleep(10)
-        
-        ##encendemos el ASIC en modo lectura i esperamos a que se llene la RAM
-        # self.Single_Run_E()
-        self.inte = 0
-        while True:
-            # the generation is started
-            # The dictionary SigConfig is passed to SignalGenerator class as
-            # kwargs, this means you can send the full dictionary and only use
-            # the variables in which you are interesed in
-            
-            #Unidad minima son 1024 bytes (las palabras con de 2 bytes)
-            #Cada RunCompleto equivale a 2560000 bytes 
-            #Si FS = 27MHz tenemos 27e6/2.0/32.0 = 421875 Hz cada trama de 64 bits
-            #Entonces 2560000 bytes * 8 / 64 bits = 320000 Tramas
-            #En tiempo seria 320000 Tramas / 421875 Hz = 0.75 segundos de captura
-            
-# =============================================================================
-#             if(self.NumOfWordsRam() >= 2*(2560000*self.Runs_Completos/2.0)):
-#                 
-#                 self.OutData = self.Fetch(self.Runs_Completos)
-#                 
-#                 self.NewGenData.emit()
-#                 self.inte = self.inte + 1
-#             
-#             print("Inside Run " , self.NumOfWordsRam(), " int ", self.inte )
-# =============================================================================
-
-            self.OutData = np.arange(0,1024,1)
-            self.inte = self.inte + 1
-            print("Inside Run " , " int ", self.inte )
-            
-
-            Qt.QThread.msleep(self.tInterrupt)
-
     def RunLocal(self):
         '''
         Run function in threads is the loop that will start when thread is
@@ -1406,8 +1355,160 @@ class ASIC(Qt.QThread):
             
         #Paramos el ASIC
         self.StopRun()
+    def Conver(self,Data,Scale):
+        Y_Data = 2.0*(Data-(2**(13.0-1))+0.5)/2**13.0
+        if Scale:
+            Y_Data = Y_Data/4.0/25e3
+        return Y_Data
+            
         
+    def Bitstream_to_Matrix(self,Buffer_Str,nCols,nChannels,Scale):
+        #Buscamos el inicio
+        Indice = 0      
+        
+        for n in range(len(Buffer_Str)-64+8+4):
+            # if(Buffer_Str[n:n+7] == '1000101'):
+            #if((Buffer_Str[n:n+12] == '100010100000') and (Buffer_Str[n+64:n+64+8+4] == '100010100001')):
+            if((Buffer_Str[n:n+8] == '10100000') and (Buffer_Str[n+60:n+64+8] == '100010100001')):
+                Indice = n
+                break
+            
+        #separamos cada sar contador etc
+        CAB = []
+        COL = []
+        SAR_0 = []
+        SAR_1 = []
+        SAR_2 = []
+        SAR_3 = []
+        FOOT = []
+        
+        # Indice = Indice + 4
+        Buffer_Str_S = Buffer_Str[Indice:]
+        
+        for r in range(int((len(Buffer_Str_S))/64.0)):
+            # r = 1
+            DATAP = Buffer_Str_S[r*64:r*64+64]
+            # print(r)
+            CAB.append(int(DATAP[0:3],2))
+            COL.append(int(DATAP[3:8],2))
+            SAR_0.append(int(DATAP[8:21],2))
+            SAR_1.append(int(DATAP[21:34],2))
+            SAR_2.append(int(DATAP[34:47],2))
+            SAR_3.append(int(DATAP[47:60],2))
+            FOOT.append(int(DATAP[60:64],2))
+        
+        CAB = np.array(CAB)
+        COL = np.array(COL)
+        SAR_0 = np.array(SAR_0)
+        SAR_1 = np.array(SAR_1)
+        SAR_2 = np.array(SAR_2)
+        SAR_3 = np.array(SAR_3)
+        
+        Time_Stamp_Diff = np.diff(CAB)
+        
+        Error = len(np.where(Time_Stamp_Diff != 0)[0]) # si la diferencia entre ellos es uno entonces esta bien
+       
+        if (CAB[0] == 0) or (CAB[0] !=5):
+            Error = Error +1
+            
+        ##BUFFER SALIDA
+        X_Axis = COL
+        nsamples = int(len(X_Axis)/nCols)
+        Buffer_Matrix = np.zeros((nsamples,nChannels))
+            
+        if(Error):
+            print ("ERROR Salto ")
 
+        else:      
+            
+            #Si es igual a 1 no hi ha 
+            if nCols == 1:
+                Buffer_Matrix[:,0] = COL
+                Buffer_Matrix[:,1] = COL
+                Buffer_Matrix[:,2] = COL
+                Buffer_Matrix[:,3] = COL
+            else:        
+                
+                Contador = 0
+                for pos,val in enumerate(X_Axis):
+            
+                    Buffer_Matrix[Contador][val] = self.Conver(SAR_0[pos],0)
+                    Buffer_Matrix[Contador][val+nCols] = self.Conver(SAR_1[pos],0)
+                    Buffer_Matrix[Contador][val+2*nCols] = self.Conver(SAR_2[pos],0)
+                    Buffer_Matrix[Contador][val+3*nCols] = self.Conver(SAR_3[pos],0)
+                    
+                    if val == nCols-1:
+                        Contador = Contador + 1
+        
+        return Buffer_Matrix
+        
+    
+class ThreadAcq(Qt.QThread):
+    NewGenData = Qt.pyqtSignal()
+    def __init__(self,ASP,nChannels,nCols,Scale):
+        super(ThreadAcq, self).__init__()
+        self.ASP = ASP
+        
+        self.nChannels = nChannels
+        self.nCols = nCols
+        self.Scale = Scale
+        
+    
+    def run(self):
+        '''
+        Run function in threads is the loop that will start when thread is
+        started.
+        Returns
+        -------
+        None.
+        '''
+        # while True statement is used to generate a lopp in the run function
+        # so, while the thread is active, the while loop is running
+        
+        #Asic en modo lectura
+        self.ASP.Asic_Read()
+        
+        a = self.ASP.Switch_ON_OFF_WireInPos(Add_Reset_MOD_IN,8, 1)      
+        time.sleep(10)
+        
+        ##encendemos el ASIC en modo lectura i esperamos a que se llene la RAM
+        self.ASP.Single_Run_E()
+        
+        self.inte = 0
+        while True:
+            # the generation is started
+            # The dictionary SigConfig is passed to SignalGenerator class as
+            # kwargs, this means you can send the full dictionary and only use
+            # the variables in which you are interesed in
+            
+            #Unidad minima son 1024 bytes (las palabras con de 2 bytes)
+            #Cada RunCompleto equivale a 2560000 bytes 
+            #Si FS = 27MHz tenemos 27e6/2.0/32.0 = 421875 Hz cada trama de 64 bits
+            #Entonces 2560000 bytes * 8 / 64 bits = 320000 Tramas
+            #En tiempo seria 320000 Tramas / 421875 Hz = 0.75 segundos de captura
+            
+            if(self.ASP.NumOfWordsRam() >= 2*(2560000*self.ASP.Runs_Completos/2.0)):
+                
+# =============================================================================
+#                 Buffer_Fetch = self.ASP.Fetch(self.ASP.Runs_Completos)
+#                 
+#                 Buffer_bitstream =ConstBitStream(Buffer_Fetch)
+#                 Buffer_Str = Buffer_bitstream.bin 
+#                 
+#                 self.OutData =  self.ASP.Bitstream_to_Matrix(Buffer_Str=Buffer_Str,nCols = self.nCols,nChannels = self.nChannels,Scale = self.Scale)
+#                 
+#                 
+# =============================================================================
+                self.OutData= self.ASP.Fetch(self.ASP.Runs_Completos)
+                
+                
+                self.NewGenData.emit()
+                self.inte = self.inte + 1
+            
+            print("Inside Run " , self.ASP.NumOfWordsRam(), " int ", self.inte )
+            
+
+            Qt.QThread.msleep(self.ASP.tInterrupt)
 
 #############################################################MAIN
                            
@@ -1534,41 +1635,45 @@ if __name__ == '__main__':
     DIC_R = {'Row 0': {'Enable': True, 'Gain': 2, 'Offset Vector': 0}}
     
     
-    AS2.Dict_To_InstructionSimple(DIC_C)
-    AS2.Dict_To_InstructionSimple(DIC_R)
+    # AS2.Dict_To_InstructionSimple(DIC_C)
+    # AS2.Dict_To_InstructionSimple(DIC_R)
+    
+    AS2.FPGA_SAR_ON(1)
+    
     
     #Long Run
-    Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.ReadAcqL()
+    # Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.ReadAcqL()
     
     #Short Run
     # Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.ReadAcqS()
     
     #Multiples Runs
-# =============================================================================
-#     #Variables
-#     AS2.Runs_Completos = 8
-#     AS2.LimiteRuns = 2*13 #13 (6.5 con 8)  aproximadamente lo que se hacia antes para 40 segundos
-#     
-#     Inicio = time.time()
-#     
-#     AS2.RunLocal()
-#     # Buffer_Fetch  = AS2.OutData
-#     print("Tiempo Captura ",time.time()-Inicio, " s")
-#     print("Bitstream Init...")
-#     Buffer_bitstream =ConstBitStream(AS2.OutData)
-#     Buffer_Str = Buffer_bitstream.bin 
-#     
-#     print("Bistream_Completo..." ,time.time()-Inicio, " s")
-#     print("Parsing...")
-#     
-#     Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.Bitstream_to_Sep(Buffer_Str=Buffer_Str)
-#     print("Parsing Completo...",time.time()-Inicio, " s")
-# =============================================================================
+    #Variables
+    AS2.Runs_Completos = 8
+    AS2.LimiteRuns = 1*13 #13 (6.5 con 8)  aproximadamente lo que se hacia antes para 40 segundos
     
-    if(Error):
+    AS2.LimiteRuns = 1
+    Inicio = time.time()
     
-        print("ERROR en la Captura") 
+    AS2.RunLocal()
+    # Buffer_Fetch  = AS2.OutData
+    print("Tiempo Captura ",time.time()-Inicio, " s")
+    print("Bitstream Init...")
+    Buffer_bitstream =ConstBitStream(AS2.OutData)
+    Buffer_Str = Buffer_bitstream.bin 
     
+    a[0]
+    
+    print("Bistream_Completo..." ,time.time()-Inicio, " s")
+    print("Parsing...")
+    
+    Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.Bitstream_to_Sep(Buffer_Str=Buffer_Str)
+    print("Parsing Completo...",time.time()-Inicio, " s")
+    
+    
+    Matrix_Buffer = AS2.Bitstream_to_Matrix(Buffer_Str=Buffer_Str,nCols = 4,nChannels = 16,Scale = 0)
+    
+    print(Matrix_Buffer.shape)
     # AS2.ASIC_Off()
     
     #Gravar en fichero
