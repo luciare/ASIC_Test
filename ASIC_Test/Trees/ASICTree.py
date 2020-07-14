@@ -66,26 +66,30 @@ GeneratorConfig =  {'name': 'GeneratorConfig',
                                  'suffix': 'MHz'},
                                 {'name': 'DAC EL',
                                  'title': 'Reference Electrode DAC',
-                                 'value': 1.6,
+                                 'value': 0.9,
                                  'type': 'float',
+                                 'limits': (0.0, 1.8),
                                  'siPrefix': True,
                                  'suffix': 'V'},
                                 {'name': 'DAC E',
                                  'title': 'Offset Cancelation DAC',
-                                 'value': 0.9,
+                                 # 'value': 0.6888888888888889,
+                                 'value': 0.8,
                                  'type': 'float',
+                                 'limits': (0.0, 1.8),
                                  'siPrefix': True,
                                  'suffix': 'V'},                                   
                                 {'name': 'DAC COL',
                                  'title': 'Column DAC',
-                                 'value': 0.9,
+                                 'value': 1.0,
+                                 'limits': (0.0, 1.8),
                                  'type': 'float',
                                  'siPrefix': True,
                                  'suffix': 'V'},
                                 {'name': 'SCAN',
                                  'title': 'Column Scan',
                                  'values' : Dic_PB_L,
-                                 'value': 1,
+                                 'value': 4,
                                  'type': 'list'},     
                                 {'name': 'MASTER',
                                  'title': 'Master ON',
@@ -113,7 +117,7 @@ RowConf = {'name': 'RowConfig',
                                      {'name':'Offset Vector',
                                       'type': 'str', 
                                       'readonly': False,
-                                      'value': "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"}
+                                      'value': "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3"}
                                      )}, 
                         {'name':'Row 1',
                          'type': 'group',
@@ -127,7 +131,7 @@ RowConf = {'name': 'RowConfig',
                                      {'name':'Offset Vector',
                                       'type': 'str', 
                                       'readonly': False,
-                                      'value': "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"}
+                                      'value': "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3"}
                                      )}, 
                         {'name':'Row 2',
                          'type': 'group',
@@ -141,7 +145,7 @@ RowConf = {'name': 'RowConfig',
                                      {'name':'Offset Vector',
                                       'type': 'str', 
                                       'readonly': False,
-                                      'value': "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"}
+                                      'value': "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3"}
                                      )}, 
                         {'name':'Row 3',
                          'type': 'group',
@@ -155,12 +159,38 @@ RowConf = {'name': 'RowConfig',
                                      {'name':'Offset Vector',
                                       'type': 'str', 
                                       'readonly': False,
-                                      'value': "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"}
+                                      'value': "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,3,3,3"}
                                      )}, 
       
                         
                                   ) 
                      }
+
+GlobalVREFE = {'name': 'Global_VREFE',
+                      'type': 'group',
+                    'children': ({'name': 'Start/Stop Sweep',
+                                  # 'title': 'Start Sweep',
+                                  'type': 'action', },
+                                 {'name': 'VREFESweep',
+                                          'type': 'group',
+                                          'children': ({'name': 'Vinit',
+                                                        'type': 'float',
+                                                        'value': 0,
+                                                        'limits': (0.0, 0.9),
+                                                        'siPrefix': True,
+                                                        'suffix': 'V'},
+                                                       {'name': 'Vfinal',
+                                                        'type': 'float',
+                                                        'value': 0.9,
+                                                        'limits': (0.0, 0.9),
+                                                        'siPrefix': True,
+                                                        'suffix': 'V'},
+                                                       {'name': 'NSweeps',
+                                                        'type': 'int',
+                                                        'value': 10,
+                                                        'siPrefix': True,
+                                                        'suffix': 'Sweeps'},
+                                                       )},)}
 
 ##############################ASIC##########################################
 class ASICParameters(pTypes.GroupParameter):
@@ -189,6 +219,20 @@ class ASICParameters(pTypes.GroupParameter):
         #######
         self.GenConfig.sigTreeStateChanged.connect(self.on_GenConfig_change)
         
+        self.addChild(GlobalVREFE)
+        self.GlobalVrefConfig = self.param('Global_VREFE')
+        
+        self.Vmin = self.GlobalVrefConfig.param('VREFESweep').param('Vinit').value()
+        self.Vmax = self.GlobalVrefConfig.param('VREFESweep').param('Vfinal').value()
+        self.NSweeps = self.GlobalVrefConfig.param('VREFESweep').param('NSweeps').value()
+        self.GlobalVrefConfig.sigTreeStateChanged.connect(self.GlobalVrefConfig_change)
+
+    def GlobalVrefConfig_change(self):
+        self.Vmin = self.GlobalVrefConfig.param('VREFESweep').param('Vinit').value()
+        self.Vmax = self.GlobalVrefConfig.param('VREFESweep').param('Vfinal').value()
+        self.NSweeps = self.GlobalVrefConfig.param('VREFESweep').param('NSweeps').value()    
+        
+        
     def on_RowsConfig_changed(self):
         for pars in self.RowsConfig.children():
             if pars.param('Enable').value():
@@ -197,8 +241,8 @@ class ASICParameters(pTypes.GroupParameter):
                 for ind in self.OffVect:
                     if int(ind) < 0:
                         self.OffVect[self.OffVect.index(ind)] = '0'
-                    elif int(ind) > 6:
-                        self.OffVect[self.OffVect.index(ind)] = '6'
+                    elif int(ind) > 7:
+                        self.OffVect[self.OffVect.index(ind)] = '7'
 
                 while len(self.OffVect) < 32:
                     print("Less than 32 values, adding 0s")
@@ -295,10 +339,16 @@ class ASICParameters(pTypes.GroupParameter):
                    and value is an integer which indicate the index of the
                    input data array.
         """
+        # Channels = {}
+        # for i in range(self.nChannels):
+        #     Name = 'Ch' + str(i)
+        #     Channels[Name] = i
+            
         Channels = {}
-        for i in range(self.nChannels):
-            Name = 'Ch' + str(i)
-            Channels[Name] = i
+        for j in range(self.nCols):
+            for i in range(self.nRows):
+                Name = 'Row' + str(i) + 'Col'+str(j)
+                Channels[Name] = i+j*self.nCols            
         return Channels
     
 if __name__ == '__main__':
@@ -319,4 +369,13 @@ if __name__ == '__main__':
     n.nRows
     n.nCols
     
-    n.GenConfig.param('SCAN').setValue(1)
+    n.GenConfig.param('SCAN').setValue(4)
+
+
+        
+    n.GetChannels()
+            
+        
+        
+        
+        

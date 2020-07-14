@@ -8,6 +8,8 @@ from __future__ import print_function
 import os
 
 import numpy as np
+import matplotlib.pyplot as plt
+
 import time
 
 from PyQt5 import Qt
@@ -26,6 +28,7 @@ from PyqtTools.PlotModule import PlotterParameters as TimePltPars
 from PyqtTools.PlotModule import PSDPlotter as PSDPlt
 from PyqtTools.PlotModule import PSDParameters as PSDPltPars
 
+import PyqtTools.CharacterizationModule as Charact
 
 DEBUG = 0
 ##ASIC
@@ -33,8 +36,6 @@ if DEBUG == 0:
     from JoseCodes.BC_COM_AS2_V4 import ThreadAcq as AS_Thread
     from JoseCodes.BC_COM_AS2_V4 import ASIC as AS
     
-from bitstring import ConstBitStream
-
 
 class MainWindow(Qt.QWidget):
     ''' Main Window '''
@@ -65,6 +66,7 @@ class MainWindow(Qt.QWidget):
         self.threadPlotter = None
         self.threadPsdPlotter = None
         self.threadSave = None
+        self.threadCharact = None
         
 # #############################Save##############################
 
@@ -105,6 +107,13 @@ class MainWindow(Qt.QWidget):
             self.ASIC_C = AS(DEBUG =1)
         self.ParamChange = 1
                 
+        
+# #############################Sweep Config##############################
+        self.SwParams = Charact.SweepsConfig(QTparent=self,
+                                             name='Sweeps Configuration')
+        self.Parameters.addChild(self.SwParams)     
+        
+# ################################EVENTS#############################
         # Connect event for managing event
         
         self.ASICParams.NewConf.connect(self.on_NewASICConf)
@@ -128,6 +137,11 @@ class MainWindow(Qt.QWidget):
         
         self.btnSaveData.clicked.connect(self.on_btnSaveData)
         
+        self.SwParams.param('SweepsConfig').param('Start/Stop Sweep').sigActivated.connect(self.on_Sweep_start)
+        # self.SwParams.param('SweepsConfig').param('Pause Sweep').sigActivated.connect(self.on_Sweep_paused)
+        
+        self.ASICParams.param('Global_VREFE').param('Start/Stop Sweep').sigActivated.connect(self.on_VREF_E_Sweep_start)
+        
 # ############################GuiConfiguration##############################
         # Is the same as before functions but for 'Parameters' variable,
         # which conatins all the trees of all the Gui, so on_Params_changed
@@ -140,7 +154,7 @@ class MainWindow(Qt.QWidget):
 
         layout.addWidget(self.treepar)
 
-        self.setGeometry(550, 10, 300, 700)
+        self.setGeometry(550, 10, 500, 700)
         self.setWindowTitle('MainWindow')
 
 
@@ -237,16 +251,15 @@ class MainWindow(Qt.QWidget):
             DIC_C = self.ASICParams.GetGenParams()
             DIC_R = self.ASICParams.GetRowsParams()
             
+            #Solo aplicar cambios si es necesario
+            self.ASIC_C.Dict_To_InstructionSimple(DIC_C)
+            self.ASIC_C.Dict_To_InstructionSimple(DIC_R)
+            
             #Chapuza
             # self.threadGeneration = self.ASIC_C
-            self.threadGeneration = AS_Thread(ASP = self.ASIC_C,nChannels = self.ASICParams.nChannels,nCols = self.ASICParams.nCols,Scale = [2,2,2,2])
-            
-            #Solo aplicar cambios si es necesario
-            if(self.ParamChange):
-                self.ASIC_C.Dict_To_InstructionSimple(DIC_C)
-                self.ASIC_C.Dict_To_InstructionSimple(DIC_R)
-                self.ParamChange = 0
-            
+            self.threadGeneration = AS_Thread(ASP = self.ASIC_C,nChannels = self.ASICParams.nChannels,
+                                              nCols = self.ASICParams.nCols,DIC_C = DIC_C, DIC_R = DIC_R)
+                        
             #Runs completos
             self.ASIC_C.Runs_Completos = self.ASICParams.RunsCompletos
             self.ASIC_C.tInterrupt = 1000
@@ -260,7 +273,7 @@ class MainWindow(Qt.QWidget):
                               'nChannels': self.ASICParams.nChannels,
                               'Fs': None,
                               'ChnNames': None,
-                              'MaxSize': None,
+                              'MaxSize': self.FileParams.param('MaxSize').value(),
                               'dtype': 'float',
                               }
                 self.threadSave = FileMod.DataSavingThread(**FilekwArgs)
@@ -327,8 +340,24 @@ class MainWindow(Qt.QWidget):
                     
         
             # #Short Run Adquisicion
-            # self.Error,self.Col,self.Sar_0,self.Sar_1,self.Sar_2,self.Sar_3 = self.ASIC_C.ReadAcqS()
-            self.Error,self.Col,self.Sar_0,self.Sar_1,self.Sar_2,self.Sar_3 = self.ASIC_C.ReadAcqL()
+            self.Error,self.Col,self.Sar_0,self.Sar_1,self.Sar_2,self.Sar_3 = self.ASIC_C.ReadAcqS()
+            # self.Error,self.Col,self.Sar_0,self.Sar_1,self.Sar_2,self.Sar_3 = self.ASIC_C.ReadAcqL()
+            
+            Sar_0_I = 2.0*(self.Sar_0-(2**(13.0-1))+0.5)/2**13.0
+            Sar_1_I = 2.0*(self.Sar_1-(2**(13.0-1))+0.5)/2**13.0
+            Sar_2_I = 2.0*(self.Sar_2-(2**(13.0-1))+0.5)/2**13.0
+            Sar_3_I = 2.0*(self.Sar_3-(2**(13.0-1))+0.5)/2**13.0
+            
+            # Sar_0_I = Sar_0_I/(4*25e3)
+            # a[0]
+            plt.figure(1001)
+            
+            plt.plot(Sar_0_I)
+            plt.plot(Sar_1_I)
+            plt.plot(Sar_2_I)
+            plt.plot(Sar_3_I)
+            
+            
             
             #Pone el ASIC en Standby
             self.threadGeneration.StopRun()
@@ -355,7 +384,215 @@ class MainWindow(Qt.QWidget):
 
         if self.threadPsdPlotter is not None:
             self.threadPsdPlotter.AddData(self.threadGeneration.OutData)
+            
+        if self.threadCharact is not None:
+            self.threadCharact.AddData(self.threadGeneration.OutData)
     
+    # #############################VREF_E GLOBAL ##############################
+            
+    def on_VREF_E_Sweep_start(self):
+        
+        Vmin = self.ASICParams.Vmin
+        Vmax = self.ASICParams.Vmax
+        Steps = self.ASICParams.NSweeps
+        nChannels = self.ASICParams.nChannels
+        nCols = self.ASICParams.nCols
+        DIC_C = self.ASICParams.GetGenParams()
+
+        VREF_E_G = self.ASIC_C.GlobalVREFE(Vmin,Vmax,Steps,nChannels,nCols,DIC_C)
+        self.ASIC_C.StopRun()
+        
+        self.ASICParams.GenConfig.param('DAC E').setValue(VREF_E_G)
+        
+    # #############################START Sweep Acquisition ####################
+    def on_Sweep_start(self):
+        if self.threadGeneration is None:
+            print('Sweep started')
+            
+            self.treepar.setParameters(self.Parameters, showTop=False)
+
+            self.SweepsKwargs = self.SwParams.GetConfigSweepsParams()
+            self.DcSaveKwargs = self.SwParams.GetSaveSweepsParams()
+
+            self.VdSweepVals = self.SweepsKwargs['VdSweep']
+            self.VgSweepVals = self.SweepsKwargs['VgSweep']
+            
+            self.ASICParams.GenConfig.param('DAC EL').setValue(0.9 + self.VgSweepVals[0]) ####DESCOMENTAR
+            self.ASICParams.GenConfig.param('DAC COL').setValue(0.9 + self.VdSweepVals[0])
+            
+            #Actualizacion de los parametros de configuracion
+            DIC_C = self.ASICParams.GetGenParams()
+            DIC_R = self.ASICParams.GetRowsParams()
+            
+            # print(DIC_C)
+            
+            self.threadGeneration = AS_Thread(ASP = self.ASIC_C,nChannels = self.ASICParams.nChannels,
+                                              nCols = self.ASICParams.nCols,DIC_C = DIC_C, DIC_R = DIC_R)
+                                    
+            self.ASIC_C.Dict_To_InstructionSimple(DIC_C)
+            self.ASIC_C.Dict_To_InstructionSimple(DIC_R)
+            
+            #Runs completos
+            self.ASIC_C.Runs_Completos = self.ASICParams.RunsCompletos
+            self.ASIC_C.tInterrupt = 1000
+            
+            self.threadGeneration.NewGenData.connect(self.on_NewSample)
+            
+            self.threadGeneration.Lista = None
+            
+            #Reset Plots
+            self.on_ResetGraph()
+
+
+            self.threadCharact = Charact.StbDetThread(nChannels=self.ASICParams.nChannels,
+                                                      ChnName=self.ASICParams.GetChannels(),
+                                                      PlotterDemodKwargs=self.PsdPlotParams.GetParams(),
+                                                      **self.SweepsKwargs
+                                                      )
+            
+            self.threadCharact.NextVg.connect(self.on_NextVg)
+            self.threadCharact.NextVd.connect(self.on_NextVd)
+            self.threadCharact.CharactEnd.connect(self.on_CharactEnd)
+            self.threadCharact.Timer.start(self.SweepsKwargs['TimeOut']*1000)
+            self.threadCharact.start()
+
+
+            # Start generation
+            self.threadGeneration.start()            
+            self.OldTime = time.time()
+            
+        else:
+            print('########## Stoping Adquisition  ##########')   
+            #Pone el ASIC en Standby
+            self.ASIC_C.StopRun()
+            
+            # Thread is terminated and set to None
+            self.threadGeneration.NewGenData.disconnect()
+            self.threadGeneration.terminate()
+            self.threadGeneration = None
+        
+         # Plot and PSD threads are stopped
+            if self.threadPlotter is not None:
+                self.threadPlotter.stop()
+                self.threadPlotter = None
+
+            if self.threadPsdPlotter is not None:
+                self.threadPsdPlotter.stop()
+                self.threadPsdPlotter = None
+
+            # Also save thread is stopped
+            if self.threadSave is not None:
+                self.threadSave.stop()
+                self.threadSave = None
+            # Button text is changed again
+            
+            if self.threadCharact is not None:
+                self.threadCharact.NextVg.disconnect()
+                self.threadCharact.NextVd.disconnect()
+                self.threadCharact.CharactEnd.disconnect()
+                self.threadCharact.stop()
+                self.threadCharact = None
+
+    
+    
+    def on_NextVg(self):       
+        print('HUEVO VGS ')
+        while(self.threadGeneration.EndCap == 1):
+            print("Esperando a que acabe de cojer datos...")
+                
+        # self.ASIC_C.StopRun()
+
+        # # Thread is terminated and set to None
+        # self.threadGeneration.NewGenData.disconnect()
+        # self.threadGeneration.terminate()
+        # self.threadGeneration = None
+        
+        DIC_C = {'DAC EL': 0.9 + self.threadCharact.NextVgs} ####DESCOMENTAR
+
+        #Actualizacion de los parametros de configuracion
+        # self.ASIC_C.Dict_To_InstructionSimple(DIC_C) ####DESCOMENTAR
+        
+        # self.threadGeneration = AS_Thread(ASP = self.ASIC_C,nChannels = self.ASICParams.nChannels,nCols = self.ASICParams.nCols,Scale = [2,2,2,2])
+        # self.threadGeneration.NewGenData.connect(self.on_NewSample)
+        # self.threadGeneration.start()            
+
+        self.threadGeneration.Lista = DIC_C
+
+        print('VG ',self.threadCharact.NextVgs)
+        # self.threadCharact.Timer.start(self.SweepsKwargs['TimeOut']*1000)
+        print('NEXT VGS SWEEP')
+
+    def on_NextVd(self):
+        
+        while(self.threadGeneration.EndCap == 1):
+            print("Esperando a que acabe de cojer datos...")
+                
+        # self.ASIC_C.StopRun()
+        
+        # Thread is terminated and set to None
+        # self.threadGeneration.NewGenData.disconnect()
+        # self.threadGeneration.terminate()
+        # self.threadGeneration = None
+        
+        DIC_C = {'DAC COL': 0.9 + self.threadCharact.NextVds}
+        #Actualizacion de los parametros de configuracion
+        # self.ASIC_C.Dict_To_InstructionSimple(DIC_C)
+        
+        # self.threadGeneration = AS_Thread(ASP = self.ASIC_C,nChannels = self.ASICParams.nChannels,nCols = self.ASICParams.nCols,Scale = [2,2,2,2])
+        # self.threadGeneration.NewGenData.connect(self.on_NewSample)
+        # self.threadGeneration.start()   
+        
+        self.threadGeneration.Lista = DIC_C
+
+        
+        print('VD ',self.threadCharact.NextVds)
+        # self.threadCharact.Timer.timeout.connect(self.threadCharact.printTime)
+        # self.threadCharact.Timer.start(self.SweepsKwargs['TimeOut']*1000)    
+        
+        
+    def on_CharactEnd(self):
+       while(self.threadGeneration.EndCap == 1):
+           print("Esperando a que acabe de cojer datos...")
+               #Pone el ASIC en Standby
+       self.threadGeneration.EndCap = 2
+       
+       self.ASIC_C.StopRun()
+       
+       # Thread is terminated and set to None
+       self.threadGeneration.NewGenData.disconnect()
+       self.threadGeneration.terminate()
+       self.threadGeneration = None
+        
+       print('END Charact')
+       self.threadCharact.NextVg.disconnect()
+       self.threadCharact.NextVd.disconnect()
+       self.threadCharact.CharactEnd.disconnect()
+       CharactDCDict = self.threadCharact.DCDict
+       CharactACDict = self.threadCharact.ACDict
+        
+       self.threadCharact.SaveDCAC.SaveDicts(Dcdict=CharactDCDict,
+                                              Acdict=CharactACDict,
+                                              **self.DcSaveKwargs)
+      
+    # Plot and PSD threads are stopped
+       if self.threadPlotter is not None:
+           self.threadPlotter.stop()
+           self.threadPlotter = None
+
+       if self.threadPsdPlotter is not None:
+           self.threadPsdPlotter.stop()
+           self.threadPsdPlotter = None
+
+       # Also save thread is stopped
+       if self.threadSave is not None:
+           self.threadSave.stop()
+           self.threadSave = None
+       # Button text is changed again
+       
+       if self.threadCharact is not None:
+           self.threadCharact.stop()
+           self.threadCharact = None
+
     
     ###########ELIMINAR
     def on_btnSaveData(self):

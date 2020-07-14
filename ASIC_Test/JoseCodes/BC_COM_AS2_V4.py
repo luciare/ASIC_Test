@@ -136,6 +136,112 @@ Dic_PB ={
     32:(1,1)
 }
 
+####################DAC CAL
+Vres_EL =[2.36,7.14,11.91,16.75,21.55,26.35,31.13,35.92,40.71,45.48,50.28,55.07,59.85,64.64,
+       69.42,74.21,79.0,83.78,88.56,93.36,98.14,102.93,107.73,112.53,117.32,122.11,126.90,
+       131.69,136.48,141.26,146.05,150.83,155.63,160.42,165.20,169.99,174.78,179.56,184.36,
+       189.15,193.93,198.72,203.51,208.30,213.10,217.91,222.69,227.48,232.25,237.05,241.84,
+       246.62,251.40,256.19,260.97,265.76,270.54,275.32,280.10,284.89,289.68,294.47,299.25,
+       304.03,308.82,313.60,318.39,323.18,327.98,332.77,337.55,342.33,347.13,351.92,356.71,
+       361.50,366.28,371.08,375.87,380.66,385.44,390.23,395.02,399.82,404.61,409.39,414.17,
+       418.96,423.75,428.55,433.36,438.14,442.93,447.71,452.51,457.31,462.10,466.88,471.67,
+       476.45,481.25,486.04,490.82,495.61,500.39,505.18,509.98,514.76,519.55,524.34,529.12,
+       533.92,538.70,543.52,548.31,553.10,557.89,562.70,567.48,572.27,577.07,581.85,586.65,
+       591.45,596.23,601.02,605.82,610.60,615.40,620.19,624.98,629.77,634.56,639.35,644.14,
+       648.96,653.75,658.55,663.33,668.13,672.93,677.72,682.50,687.30,692.09,696.89,
+       701.68,706.46,711.26,716.05,720.84,725.65,730.43,735.22,740.02,744.80,749.61,754.40,
+       759.22,764.02,768.81,773.60,778.40,783.20,787.98,792.77,797.55,802.34,807.15,811.92,
+       816.71,821.50,826.28,831.09,835.89,840.70,845.49,850.28,855.06,859.87,864.68,869.47,
+       874.26,879.04,883.83,888.62,893.41,898.21,903.02,907.80,912.60,917.37,922.16,926.96,
+       931.76,936.54,941.33,946.11,950.91,955.72,960.51,965.31,970.09,974.90,979.71,984.51,
+       989.29,994.09,998.88,1003.66,1008.46,1013.25,1018.04,1022.83,1027.61,1032.41,1037.23,
+       1042.02,1046.81,1051.59,1056.38,1061.18,1065.98,1070.77,1075.55,1080.36,1085.16,
+       1089.96,1094.74,1099.56,1104.33,1109.11,1113.91,1118.72,1123.50,1128.30,1133.09,
+       1137.88,1142.68,1147.48,1152.27,1157.06,1161.84,1166.64,1171.44,1176.22,1181.01,
+       1185.80,1190.64,1195.4,1200.20,1205.0,1209.8,1214.5,1219.3,1224.1,1228.9,1233.7,
+       1238.5,1243.2,1248.0,1252.8,1257.6,1262.4,1267.2,1272.0,1276.8,1281.6,1286.4,1291.1,
+       1295.9,1300.7,1305.5,1310.3,1315.1,1319.9,1324.7,1329.5,1334.3,1339.1,1343.8,1348.6,
+       1353.4,1358.2,1363.0,1367.8,1372.6,1377.3,1382.1,1386.9,1391.7,1396.5,1401.3,1406.1,
+       1410.9,1415.7,1420.5,1425.3,1430.0,1434.8,1439.6,1444.4,1449.2,1454.0,1458.7,1463.5,
+       1468.3,1473.1,1477.9,1482.7,1487.4,1492.2,1497.0,1501.8,1506.6,1511.4,1516.1,1521.0,
+       1525.8,1530.5,1535.3,1540.1,1544.9,1549.7,1554.5,1559.3,1564.1,1568.8,1573.6,1578.4,
+       1583.2,1588.0,1592.8,1597.6,1602.4,1607.1,1611.9,1616.7,1621.5,1626.3,1631.1,1635.9,
+       1640.7,1645.5,1650.3,1655.1,1659.9,1664.7,1669.4,1674.2,1679.0,1683.8,1688.6,1693.4,
+       1698.1,1702.9,1707.7,1712.4,1717.3,1722.1,1726.9]
+
+Vres_COL =[2.88,5.80,9.53,13.80,28.34,23.01,27.71,32.44,37.18,41.94,46.72,51.50,56.27,61.05,
+       65.83,70.62,75.41,80.20,84.97,89.75,94.52,99.32,104.12,108.92,113.70,118.48,123.28,
+       128.07,132.86,137.63,142.42,147.19,151.98,156.78,161.56,166.35,171.13,175.90,180.70,
+       185.50,190.27,195.05,199.83,204.63,209.42,214.24,219.01,223.79,228.56,233.35,238.14,
+       242.92,247.70,252.48,257.27,262.07,266.87,271.64,276.43,281.20,285.99,290.78,295.57,
+       300.35,305.12,309.90,314.70,319.50,324.31,329.10,333.87,338.65,343.44,348.23,353.02,
+       357.80,362.57,367.36,372.16,376.93,381.72,386.50,391.28,396.08,400.88,405.66,410.44,
+       415.22,420.01,424.80,429.63,434.40,439.18,443.95,448.76,453.56,458.34,463.12,467.89,
+       472.68,477.48,482.27,487.05,491.83,496.60,501.40,506.20,511.0,515.77,520.55,525.33,
+       530.11,534.90,539.70,544.48,549.27,554.05,558.84,563.64,568.42,573.20,577.97,582.78,
+       587.59,592.38,597.15,601.94,606.74,611.52,616.34,621.10,625.88,630.67,635.45,640.25,
+       645.07,649.85,654.62,659.41,664.20,669.01,673.8,678.57,683.34,688.13,692.93,697.74,
+       702.51,707.29,712.06,716.85,721.67,726.45,731.24,736.03,740.82,745.61,750.40,755.22,760.00,
+       764.77,769.57,774.36,779.16,783.93,788.70,793.46,798.25,803.04,807.83,812.60,817.38,
+       822.15,826.94,831.73,836.52,841.29,846.07,850.85,855.64,860.45,865.23,870.01,874.79,
+       879.56,884.35,889.13,893.92,898.71,903.50,908.28,913.07,917.85,922.64,927.43,932.21,
+       937.01,941.78,946.57,951.36,956.13,960.91,965.70,970.51,975.31,980.10,984.88,989.67,
+       994.47,999.25,1004.05,1008.85,1013.64,1018.41,1023.20,1027.99,1032.78,1037.56,1042.35,
+       1047.14,1051.92,1056.72,1061.51,1066.28,1071.07,1075.88,1080.67,1085.46,1090.25,1095.03,
+       1099.83,1104.61,1109.41,1114.20,1119.00,1123.78,1128.57,1133.37,1138.14,1142.95,1147.73,
+       1152.51,1157.29,1162.07,1166.85,1171.63,1176.41,1181.21,1186.01,1190.81,1195.60,
+       1200.4,1205.2,1210.0,1214.7,1219.5,1224.3,1229.1,1233.9,1238.7,1243.5,1248.3,1253.0,
+       1257.8,1262.6,1267.4,1272.2,1277.0,1281.8,1286.5,1291.4,1296.1,1300.9,1305.7,1310.5,
+       1315.3,1320.1,1324.9,1329.7,1334.5,1339.2,1344.0,1348.8,1353.6,1358.4,1363.2,1367.9,
+       1372.7,1377.5,1382.3,1387.1,1391.9,1396.6,1401.5,1406.2,1411.0,1415.8,1420.6,1425.4,
+       1430.2,1434.9,1439.7,1444.5,1449.3,1454.1,1458.9,1463.6,1468.4,1473.2,1478.0,1482.8,
+       1487.6,1492.4,1497.2,1501.9,1506.7,1511.5,1516.3,1521.1,1525.9,1530.7,1535.5,1540.3,
+       1545.1,1549.8,1554.6,1559.4,1564.2,1569.0,1573.8,1578.6,1583.4,1588.2,1593.0,1597.8,
+       1602.5,1607.3,1612.1,1616.9,1621.7,1626.5,1631.3,1636.1,1640.9,1645.7,1650.5,1655.3,
+       1660.1,1664.9,1669.6,1674.4,1679.2,1684.0,1688.8,1693.6,1698.4,1703.2,1708.0,1712.8,
+       1717.6,1722.4]
+
+Vres_E =[8.18,12.22,16.65,21.25,25.93,30.64,35.38,40.13,44.89,49.65,54.44,59.22,63.99,
+       68.76,73.53,78.32,83.11,87.90,92.68,97.48,102.25,107.05,111.84,116.66,121.45,
+       126.24,131.04,135.84,140.64,145.43,150.23,155.01,159.81,164.61,169.40,174.18,
+       178.97,183.77,188.56,193.35,198.15,202.93,207.70,212.50,217.31,222.13,226.93,
+       231.72,236.51,241.31,246.12,250.91,255.70,260.49,265.27,270.07,274.86,279.63,
+       284.42,289.20,293.99,298.78,303.58,308.36,313.14,317.92,322.71,327.52,332.32,
+       337.11,341.90,346.69,351.49,356.30,361.08,365.87,370.65,375.46,380.25,385.05,
+       389.84,394.62,399.41,404.20,408.99,413.78,418.57,423.37,428.16,432.95,437.77,
+       442.55,447.33,452.11,456.92,461.73,466.51,471.30,476.08,480.87,485.66,490.48,
+       495.27,500.06,504.85,509.86,514.44,519.21,524.01,528.79,533.59,538.39,543.18,
+       548.00,552.80,557.59,562.37,567.17,571.97,576.76,581.54,586.33,591.13,595.93,
+       600.72,605.49,610.27,615.07,619.88,624.68,629.46,634.25,639.04,643.84,648.63,
+       653.46,658.24,663.03,667.81,672.62,677.43,682.21,687.00,691.78,696.50,701.37,
+       706.16,710.93,715.73,720.53,725.32,730.12,734.91,739.69,744.48,749.27,754.06,
+       758.85,763.67,768.45,773.24,778.04,782.83,787.62,792.40,797.2,801.99,806.79,
+       811.58,816.38,821.11,825.95,830.74,835.54,840.35,845.14,849.91,854.72,859.51,
+       864.31,869.13,873.92,878.70,883.49,888.30,893.07,897.86,902.66,907.47,912.25,
+       917.04,921.83,926.60,931.40,936.20,941.00,945.79,950.58,955.36,960.15,964.95,
+       969.74,974.54,979.35,984.13,988.92,993.72,998.50,1003.29,1008.08,1012.89,1017.68,
+       1022.46,1027.25,1032.03,1036.84,1041.63,1046.42,1051.21,1056.01,1060.79,1065.58,
+       1070.39,1075.18,1079.98,1084.40,1089.58,1094.39,1099.18,1103.97,1108.77,1113.55,
+       1118.35,1123.16,1127.95,1132.74,1137.54,1142.33,1147.10,1151.90,1156.68,1161.48,
+       1166.27,1171.05,1175.84,1180.64,1185.44,1190.23,1195.05,1199.85,1204.70,1209.50,
+       1214.2,1219.0,1223.9,1228.6,1233.4,1238.2,1243.0,1247.8,1252.6,1257.4,1262.2,1267.0,
+       1271.8,1276.6,1281.4,1286.2,1290.9,1295.7,1300.0,1305.4,1310.2,1315.0,1319.8,1324.5,
+       1329.4,1334.1,1338.9,1343.7,1348.5,1353.3,1358.1,1362.9,1367.7,1372.5,1377.3,1382.1,
+       1386.9,1391.7,1396.5,1401.03,1406.1,1410.9,1415.7,1420.5,1425.3,1430.1,1434.8,1439.6,
+       1444.4,1449.2,1454.0,1458.8,1463.6,1468.4,1473.2,1478.0,1482.8,1487.6,1492.4,1497.2,
+       1502.0,1506.8,1511.6,1516.4,1521.2,1526.0,1530.8,1535.6,1540.4,1545.2,1550.0,1554.8,
+       1559.6,1564.4,1569.2,1574.0,1578.8,1583.6,1588.4,1593.2,1598.0,1602.8,1607.6,1612.4,
+       1617.2,1622.0,1626.8,1631.6,1636.5,1641.3,1646.0,1650.9,1655.7,1660.5,1665.3,1670.1,
+       1674.9,1679.7,1684.5,1689.3,1694.1,1698.9,1703.7,1708.5,1713.3,1718.1,1722.9,1727.7,
+       1732.6
+       ]
+           
+
+Vres = {"EL" : Vres_EL,
+        "COL" : Vres_COL,
+        "E" : Vres_E,
+        }
+
 class ASIC_Error(Exception):
     pass
 
@@ -148,7 +254,7 @@ class ASIC():
             print (Arg)
         
 
-    def __init__(self,Clk_Freq_D=Clk_Freq_D, Dac_Dic=Dac_Dic, Row_Translator = Row_Translator, Gain_AFE = Gain_AFE, MAGIC_HEADER=MAGIC_HEADER ,Fclk = "27MHz",DEBUG = 0):
+    def __init__(self,Clk_Freq_D=Clk_Freq_D, Dac_Dic=Dac_Dic, Row_Translator = Row_Translator, Gain_AFE = Gain_AFE, MAGIC_HEADER=MAGIC_HEADER ,Fclk = "27MHz",Vres = Vres,DEBUG = 0):
         # super permits to initialize the classes from which this class depends
         
         print("#########INIT CLASS")
@@ -161,6 +267,19 @@ class ASIC():
         self.FS = float(self.Fclk[:-3])*1.0e6
         self.DEBUG = DEBUG
         self.Transition_Time = 0.1
+        
+        # self.Vres = np.array(Vres)/1000.0
+        # Vg = np.arange(0.0,1.805,5e-3)       
+        # z = np.polyfit(self.Vres, Vg, 3)
+        # self.PolyDAC = np.poly1d(z)   
+        
+        self.Vres = Vres
+        Vg = np.arange(0.0,1.805,5e-3)       
+        self.Vres_Dic = {}
+        for n in self.Vres:
+            z = np.polyfit(np.array(self.Vres[n])/1000.0, Vg, 3)
+            self.Vres_Dic[n] = np.poly1d(z) 
+            # print (n)
         
         self.xem = ok.FrontPanel()
 
@@ -495,7 +614,9 @@ class ASIC():
         
         if(Valor >=1.8): 
             Valor = 1.8
-            
+                    
+        Valor = self.Vres_Dic[DAC](Valor)
+                        
         Result = int((Valor/1.8)*2**16 - 1)
         
         if(Valor <=0): 
@@ -1017,7 +1138,8 @@ class ASIC():
         
         ##Fetch del ByteArray
         Buffer_Fetch = self.Single_R_to_Buffer()
-    
+        self.OutData = Buffer_Fetch
+
         if(self.DEBUG):
             print("Tiempo Captura= " , time.time()-Inicio, " s")
     
@@ -1068,6 +1190,7 @@ class ASIC():
                 Salida = 0;
 
         Buffer_Fetch = self.FetchS()
+        self.OutData = Buffer_Fetch
         
         if(self.DEBUG):
             print("Tiempo Captura= " , time.time()-Inicio, " s")
@@ -1298,8 +1421,8 @@ class ASIC():
 
         # ##Volvemos a poner el MUX en la posicion de PLL 
         ##Uno es para poder hacer multirun i el otro para la senyal externa del pll
-        a = self.Switch_ON_OFF_WireInPos(Add_Reset_MOD_IN,9, 0)  
-        a = self.Switch_ON_OFF_WireInPos(Add_Reset_MOD_IN,8, 0)      
+        a = self.Switch_ON_OFF_WireInPos(Add_Reset_MOD_IN,9, 0)  #Senyal externa
+        a = self.Switch_ON_OFF_WireInPos(Add_Reset_MOD_IN,8, 0) #Senyal multiRub
 
         time.sleep(0.1)
 
@@ -1363,6 +1486,7 @@ class ASIC():
             
         #Paramos el ASIC
         self.StopRun()
+        
     def Conver(self,Data,Scale):
         Y_Data = 2.0*(Data-(2**(13.0-1))+0.5)/2**13.0
         if Scale:
@@ -1449,84 +1573,11 @@ class ASIC():
                         Contador = Contador + 1
         
         return Buffer_Matrix
-        
-    def Sep_From_ByteArray(self,Buffer_Fetch):
-        dt = np.dtype('uint16')
-        dt = dt.newbyteorder('>') ##Atento byte order
-        
-        Buffer_np = np.frombuffer(Buffer_Fetch, dtype=dt) 
-        
-        nVector = int(len(Buffer_np)/8.0) #Son 8 palabras o 16 bytes
-        CAB = np.zeros((nVector))
-        COL = np.zeros((nVector))    
-        SAR_0 = np.zeros((nVector)) 
-        SAR_1 = np.zeros((nVector)) 
-        SAR_2 = np.zeros((nVector)) 
-        SAR_3 = np.zeros((nVector)) 
-        
-        if(np.where(Buffer_np[0:20] == 5)[0][0] != 0):
-            print("INDICE RECIBIDO DISTINTO DE 5@pos0")
-        
-        else:
-        
-            for n in range(nVector):
-                Buffer_Int = Buffer_np[n*8:(n*8+8)]
-                            
-                CAB[n] = Buffer_Int[0]
-                COL[n] = Buffer_Int[1]
-                SAR_0[n] = Buffer_Int[2]
-                SAR_1[n] = Buffer_Int[3]
-                SAR_2[n] = Buffer_Int[4]
-                SAR_3[n] = Buffer_Int[5]
-        
-        Time_Stamp_Diff = np.diff(CAB)
-        
-        Error = len(np.where(Time_Stamp_Diff != 0)[0]) # si la diferencia entre ellos es uno entonces esta bien
-       
-        if (CAB[0] == 0) or (CAB[0] !=5):
-            Error = Error +1
-                    
-        if(Error):
-            print("ERROR PARSING!...")
-
-        return Error,COL,SAR_0,SAR_1,SAR_2,SAR_3  
+          
     
-    
-    def SAR_to_Matrix(self,Error,COL,SAR_0,SAR_1,SAR_2,SAR_3,nCols,nChannels,Scale):
-                   
-        ##BUFFER SALIDA
-        X_Axis = COL
-        nsamples = int(len(X_Axis)/nCols)
-        Buffer_Matrix = np.zeros((nsamples,nChannels))
-            
-        if(Error):
-            print ("ERROR Salto ")
-
-        else:      
-            
-            #Si es igual a 1 no hi ha 
-            if nCols == 1:
-                Buffer_Matrix[:,0] = COL
-                Buffer_Matrix[:,1] = COL
-                Buffer_Matrix[:,2] = COL
-                Buffer_Matrix[:,3] = COL
-            else:        
-                
-                Contador = 0
-                for pos,val in enumerate(X_Axis):
-            
-                    Buffer_Matrix[Contador][int(val)] = self.Conver(SAR_0[pos],0)
-                    Buffer_Matrix[Contador][int(val+nCols)] = self.Conver(SAR_1[pos],0)
-                    Buffer_Matrix[Contador][int(val+2*nCols)] = self.Conver(SAR_2[pos],0)
-                    Buffer_Matrix[Contador][int(val+3*nCols)] = self.Conver(SAR_3[pos],0)
-                    
-                    if val == nCols-1:
-                        Contador = Contador + 1
+    def ByteArrayToReshape(self,Buffer_Fetch,Gain_Vec,nCols,nChannels,ScaleVgs = 0):
         
-        return Buffer_Matrix    
-    
-    def ByteArrayToReshape(self,Buffer_Fetch,Gain_Vec,nCols,nChannels):
-        Gain_Vec = 1.0/(2*25e3*np.array(Gain_Vec))
+        Gain_Vec = 1.0/(2*25e3*np.array(Gain_Vec)) #########DESCOMENTAR
         
         dt = np.dtype('uint16')
         dt = dt.newbyteorder('>') ##Atento byte order
@@ -1539,10 +1590,10 @@ class ASIC():
         nVector = int(len(Buffer_np)/8.0) #Son 8 palabras o 16 bytes
     
         Buffer_np = Buffer_np.reshape((nVector,8))
-        
-        Buffer_np = 2.0*(Buffer_np[:, 2:-2]-(2**(13.0-1))+0.5)/2**13.0
-        
-        Buffer_np = Buffer_np * np.array([(Gain_Vec[0]),(Gain_Vec[1]),(Gain_Vec[2]),(Gain_Vec[3])])
+
+        Buffer_np = 2.0*((np.abs(np.array([8191,8191,0,0]) - Buffer_np[:, 2:-2]))-(2**(13.0-1))+0.5)/2**13.0
+            
+        Buffer_np = Buffer_np * np.array([(Gain_Vec[0]),(Gain_Vec[1]),(Gain_Vec[2]),(Gain_Vec[3])]) ##ERROR EN LA PCB
     
         Buffer_np = np.reshape(Buffer_np,(int(nVector/nCols),nChannels))
         
@@ -1569,22 +1620,101 @@ class ASIC():
         
         # Buffer_np = Buffer_np * np.array([(Gain_Vec[0]),(Gain_Vec[1]),(Gain_Vec[2]),(Gain_Vec[3])])
         Col = Buffer_np[:,0]
-        Sar_0 = Buffer_np[:,1]
-        Sar_1 = Buffer_np[:,2]
+        Sar_0 = 8191-Buffer_np[:,1]
+        Sar_1 = 8191-Buffer_np[:,2]
         Sar_2 = Buffer_np[:,3]
         Sar_3 = Buffer_np[:,4]
         
         return Error,Col,Sar_0,Sar_1,Sar_2,Sar_3    
     
+    
+    def GlobalVREFE(self, Vmin,Vmax,Steps,nChannels,nCols,DIC_C):
+        
+        DIC_R = {'Row 0': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,3,3,3,3]},
+                 'Row 1': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,3,3,3,3]},
+                 'Row 2': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,3,3,3,3]},
+                 'Row 3': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,3,3,3,3]}}
+        
+        self.Dict_To_InstructionSimple(DIC_C) 
+        self.Dict_To_InstructionSimple(DIC_R)
+        
+        Vcancel = np.linspace(Vmin,Vmax,Steps)
+        Vres = np.ones(len(Vcancel))*9999
+        Vres_min = 99999
+        for n,val in enumerate(Vcancel):
+            print ('IT ',n , ' Val ', val)
+            DIC_C = {'DAC E': val}
+            self.Dict_To_InstructionSimple(DIC_C)
+            time.sleep(5)
+            
+            Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = self.ReadAcqS()
+            # plt.plot(Sar_0)
+            
+            self.StopRun()
+           
+            Buffer = self.ByteArrayToReshape(Buffer_Fetch=self.OutData,Gain_Vec=[1,1,1,1],nCols=nCols,nChannels=nChannels)        
+            Buffer = np.abs(Buffer)    
+            Vres[n] = np.sum(Buffer ,axis = 1)[-1]
+            print ('IT ',n , ' Val ', val, ' Res ', Vres[n])
+            if(Vres_min >= Vres[n]):
+                Vres_min = Vres[n]
+            else:
+                break
+    
+        print('MinVal for VREF_E ' ,Vcancel[np.where(Vres == np.min(Vres))[0][0]],' V')
+        
+        # plt.figure(1000)
+        # plt.plot(Vcancel,Vres)
+    
+        return Vcancel[np.where(Vres == np.min(Vres))[0][0]]
+
+    
+    def ParamCalc(self,DIC_R,DIC_C,nCols,nChannels):
+        Trans = {
+                0: 14286.6,
+                1: 12500.775,
+                2: 11111.80,
+                3: 10000.62,
+                4:  9091.472,
+                5:  8333.85,
+                6:  7692.78,
+                7:  7143.3
+            }
+        
+        VREF_E = DIC_C['DAC E']
+        
+        I_Vec = np.zeros((nChannels))
+        Gain_Vec = np.ones((len(DIC_R)))
+        
+        for t,val in enumerate(DIC_R):
+            Gain_Vec[t] = DIC_R[val]['Gain']
+            for u in range(nCols):
+                # print(t+u*4)
+                # print(DIC_R[val]['Offset Vector'][-1-u])
+                I_Vec[t+u*4] = Trans[DIC_R[val]['Offset Vector'][-1-u]]
+                
+        I_Vec = (0.8991-VREF_E)/I_Vec
+        # I_Vec = Buffer + I_Vec
+    
+        return I_Vec,Gain_Vec
+
 class ThreadAcq(Qt.QThread):
     NewGenData = Qt.pyqtSignal()
-    def __init__(self,ASP,nChannels,nCols,Scale):
+    def __init__(self,ASP,nChannels,nCols,DIC_C,DIC_R):
         super(ThreadAcq, self).__init__()
         self.ASP = ASP
         
         self.nChannels = nChannels
         self.nCols = nCols
-        self.Scale = Scale
+        self.DIC_R = DIC_R
+        self.DIC_C = DIC_C
+        
+        self.EndCap = 0
+        
+        #Lista tareas
+        self.Lista = None
+        
+        self.I_Vec,self.Gain = self.ASP.ParamCalc(DIC_R = self.DIC_R, DIC_C = self.DIC_C, nCols = self.nCols, nChannels = self.nChannels)
         
     
     def run(self):
@@ -1603,9 +1733,9 @@ class ThreadAcq(Qt.QThread):
         
         a = self.ASP.Switch_ON_OFF_WireInPos(Add_Reset_MOD_IN,8, 1)   
         
-        self.ASP.FPGA_SAR_ON(1) #Arranca el SCLK Solo para Pattern Gen
+        # self.ASP.FPGA_SAR_ON(1) #Arranca el SCLK Solo para Pattern Gen
         
-        time.sleep(10)
+        time.sleep(1)
         
         ##encendemos el ASIC en modo lectura i esperamos a que se llene la RAM
         self.ASP.Single_Run_E()
@@ -1623,17 +1753,35 @@ class ThreadAcq(Qt.QThread):
             #Entonces 2560000 bytes * 8 / 64 bits = 320000 Tramas
             #En tiempo seria 320000 Tramas / 421875 Hz = 0.75 segundos de captura
             
+            if(self.Lista is not None):
+                self.ASP.Dict_To_InstructionSimple(self.Lista)
+                self.ASP.Single_Run_E()
+                self.Lista = None
+                print("GALLINA")
+            
             if(self.ASP.NumOfWordsRam() >= 2*(2560000*self.ASP.Runs_Completos/2.0)):
                 
-                Buffer_Fetch = self.ASP.Fetch(self.ASP.Runs_Completos)
-                 
-                self.OutData = self.ASP.ByteArrayToReshape(Buffer_Fetch,Gain_Vec = self.Scale,nCols = self.nCols,nChannels = self.nChannels)
-
-                self.NewGenData.emit()
-                self.inte = self.inte + 1
+                if(self.EndCap == 2):
+                    self.EndCap = 1
+                else:
+                    
+                    Buffer_Fetch = self.ASP.Fetch(self.ASP.Runs_Completos)
+                     
+                    
+                    OutData_Temp = self.ASP.ByteArrayToReshape(Buffer_Fetch,
+                                                               Gain_Vec = self.Gain,
+                                                               nCols = self.nCols,
+                                                               nChannels = self.nChannels)
+                    
+                    self.OutData =self.I_Vec + OutData_Temp
+                    
+                    # print('Buffer',self.OutData[:1,:16])
+    
+                    self.NewGenData.emit()
+                    self.inte = self.inte + 1
             
             print("Inside Run " , self.ASP.NumOfWordsRam(), " int ", self.inte )
-            
+            self.EndCap = 0
 
             Qt.QThread.msleep(self.ASP.tInterrupt)
 
@@ -1648,32 +1796,137 @@ if __name__ == '__main__':
    
     ##NUEVA VERSION
     DIC_C = {'FsClock': '27MHz',
-             'DAC EL': 1.6,
-             'DAC E': 0.94,
-             'DAC COL': 0.94,
+             'DAC EL': 0.9,
+             'DAC E': 0.9,
+             'DAC COL': 0.9,
              'SCAN': 4,
              'MASTER': False}
     
-    DIC_R = {'Row 0': {'Enable': True, 'Gain': 2, 'Offset Vector': 0}}
+    #NUEVA VERSION
+    # DIC_C = {'FsClock': '27MHz',
+    #           'DAC EL': 1.2,
+    #           'DAC E': 0.80,
+    #           'DAC COL': 0.9+16e-3,
+    #           # 'DAC COL': 0.9+0.3,
+    #           'SCAN': 4,
+    #           'MASTER': False}
     
+    # DIC_R = {'Row 0': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,4,3,2,1]},
+    #           'Row 1': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,3,2,1,4]},
+    #           'Row 2': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,2,1,4,3]},
+    #           'Row 3': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,1,4,3,2]}}
     
-    # AS2.Dict_To_InstructionSimple(DIC_C)
-    # AS2.Dict_To_InstructionSimple(DIC_R)
+    DIC_R = {'Row 0': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,3,3,3,3]},
+         'Row 1': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,3,3,3,3]},
+         'Row 2': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,3,3,3,3]},
+         'Row 3': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,3,3,3,3]}}
+   
+    DIC_R = {'Row 0': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,3,3,3,3]},
+         'Row 1': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,3,3,3,3]},
+         'Row 2': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,3,3,3,3]},
+         'Row 3': {'Enable': True, 'Gain': 2, 'Offset Vector': [3,3,3,3,3,3,3,3,3]}}    
+    AS2.Dict_To_InstructionSimple(DIC_C)
+    AS2.Dict_To_InstructionSimple(DIC_R)
     
-    # a[0]
-    AS2.FPGA_SAR_ON(1) ##Pattern generation
+    a[0]
+    # AS2.FPGA_SAR_ON(1) ##Pattern generation
     
     #Long Run
-    # Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.ReadAcqL()
+    Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.ReadAcqL()
     
     #Short Run
-    # Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.ReadAcqS()
-       
+    Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.ReadAcqS()
+    # a[0]
+
     
+    Sar_0_I = 2.0*(Sar_0-(2**(13.0-1))+0.5)/2**13.0
+    Sar_1_I = 2.0*(Sar_1-(2**(13.0-1))+0.5)/2**13.0
+    Sar_2_I = 2.0*(Sar_2-(2**(13.0-1))+0.5)/2**13.0
+    Sar_3_I = 2.0*(Sar_3-(2**(13.0-1))+0.5)/2**13.0
+    
+    # Sar_0_I = 2.0*(Sar_0)/((2**13.0)-1) #PCB ERROR para que este centrado en zero
+    # Sar_1_I = 2.0*(Sar_1)/((2**13.0)-1) #PCB ERROR
+    # Sar_2_I = 2.0*(Sar_2)/((2**13.0)-1)
+    # Sar_3_I = 2.0*(Sar_3)/((2**13.0)-1)
+    
+    # a[0]
+    plt.figure(1002)
+    
+    plt.plot(Sar_0_I)
+    plt.plot(Sar_1_I)
+    plt.plot(Sar_2_I)
+    plt.plot(Sar_3_I)
+    
+    
+    #DEBUG RESISTENCIAS
+    Vcol = 16e-3
+    Vrefe = 0.8
+    Ieq = Sar_0_I[:4]/(2*2.0*25e3)+((0.8991-Vrefe)/10000.62)
+    Req = Vcol/Ieq    
+    print(Req)
+    
+    Ieq = Sar_1_I[:4]/(2*2.0*25e3)+((0.8991-Vrefe)/10000.62)
+    Req = Vcol/Ieq    
+    print(Req)    
+    
+    Ieq = Sar_2_I[:4]/(2*2.0*25e3)+((0.8991-Vrefe)/10000.472)
+    Req = Vcol/Ieq    
+    print(Req) 
+    
+    Ieq = Sar_3_I[:4]/(2*2.0*25e3)+((0.8991-Vrefe)/10000.62)
+    Req = Vcol/Ieq    
+    print(Req) 
+    
+    
+    
+    DIC_Cw ={'DAC E': 0.7}
+    AS2.Dict_To_InstructionSimple(DIC_Cw)
+
+    nCols = 4
+    nChannels = 16
+
+    I_Vec, Gain = AS2.ParamCalc(DIC_R,
+                                DIC_C,
+                                nCols=nCols,
+                                nChannels=nChannels)
+    
+    Buffer = AS2.ByteArrayToReshape(Buffer_Fetch=AS2.OutData,
+                                    Gain_Vec=Gain,
+                                    nCols=nCols,
+                                    nChannels=nChannels)
+
+    I_Vec = Buffer + I_Vec
+    R = 13e-3/I_Vec[:1,:16]
+
+    # print('Buffer',self.OutData[:1,:16])
+
+
+
+    
+
+    a[0]
+    
+    Vmin = 0.0
+    Vmax = 0.2
+    Steps = 10
+    nChannels = 16
+    nCols = 4
+    # a[0]
+
+    VREF_E_G = AS2.GlobalVREFE(Vmin,Vmax,Steps,nChannels,nCols,DIC_C)
+    
+    AS2.StopRun()
+    DIC_Cw ={'DAC E': VREF_E_G}
+    AS2.Dict_To_InstructionSimple(DIC_Cw)
+
+    
+    a[0]
+
     #Multiples Runs
     #Variables
+    #2560000bytes * 8 * 13 / 16 bytes por trama = 16640000 tramas * 421.875kHz = 39.44 s
     AS2.Runs_Completos = 8
-    AS2.LimiteRuns = 2*13 #13 (6.5 con 8)  aproximadamente lo que se hacia antes para 40 segundos
+    AS2.LimiteRuns = 4*13 #13 (6.5 con 8)  aproximadamente lo que se hacia antes para 40 segundos
     
     Inicio = time.time()
     
@@ -1683,7 +1936,7 @@ if __name__ == '__main__':
     # print("Bitstream Init...")
     # Buffer_bitstream =ConstBitStream(AS2.OutData)
     # Buffer_Str = Buffer_bitstream.bin 
-    
+    a[0]
 
     # print("Bistream_Completo..." ,time.time()-Inicio, " s")
     print("Parsing...")
@@ -1691,6 +1944,8 @@ if __name__ == '__main__':
     # Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.Bitstream_to_Sep(Buffer_Str=Buffer_Str)
     # Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.Sep_From_ByteArray(AS2.OutData)
     Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.ByteArrayToReshapeSar(AS2.OutData)
+    
+    Buffer = AS2.ByteArrayToReshape(Buffer_Fetch=AS2.OutData,Gain_Vec=[1,1,1,1],nCols=4,nChannels=16)
     
     print("Parsing Completo...",time.time()-Inicio, " s")
     
@@ -1707,27 +1962,40 @@ if __name__ == '__main__':
     print ("Len Sar 2", len(Sar_2))
     print ("Len Sar 3", len(Sar_3))
 
-    letra = '2000504_Sar_CDS_12199999999'
+    Contador = 303
     
-    path_f = "/home/jcisneros/Downloads/DAta_rouleta"
+    Error,Col,Sar_0,Sar_1,Sar_2,Sar_3 = AS2.ReadAcqL()
     
-    file_name = "SAR_0_AS2t" + letra + ".txt"
+    Contador = Contador + 1
+    letra = 'ByteArray_'+str(Contador)
     
-    AS2.Gravar_M_Conversion(path=path_f,filename=file_name,Data=Sar_0,Limite= len(Sar_0),Conversion=1)
+    path_f = "/home/jcisneros/Downloads/DAta_rouleta/"
+    
+    file_name = path_f + letra + ".txt"
+
+
+    AS2.Save_File_ByteArray(path = file_name, Data = AS2.OutData)
+
+    # DIC_Cw ={'DAC E': 0.95}
+    # AS2.Dict_To_InstructionSimple(DIC_Cw)
+    
+    
+    
+    # # AS2.Gravar_M_Conversion(path=path_f,filename=file_name,Data=Sar_0,Limite= len(Sar_0),Conversion=1)
     
     # file_name = "SAR_1_AS2t" + letra + ".txt"
     
-    # AS2.Gravar_M_Conversion(path=path_f,filename=file_name,Data=Sar_1,Limite= len(Sar_1),Conversion=1)
+    # # AS2.Gravar_M_Conversion(path=path_f,filename=file_name,Data=Sar_1,Limite= len(Sar_1),Conversion=1)
     
     # file_name = "SAR_2_AS2t" + letra + ".txt"
     
-    # AS2.Gravar_M_Conversion(path=path_f,filename=file_name,Data=Sar_2,Limite= len(Sar_2),Conversion=1)
+    # # AS2.Gravar_M_Conversion(path=path_f,filename=file_name,Data=Sar_2,Limite= len(Sar_2),Conversion=1)
     
     # file_name = "SAR_3_AS2t" + letra + ".txt"
     
-    # AS2.Gravar_M_Conversion(path=path_f,filename=file_name,Data=Sar_3,Limite= len(Sar_3),Conversion=1)
+    # # AS2.Gravar_M_Conversion(path=path_f,filename=file_name,Data=Sar_3,Limite= len(Sar_3),Conversion=1)
     
-    print("Saving Files...")
+    # print("Saving Files...")
     
-    # AS2.Save_File_ByteArray(path=path_f+"/"+file_name,Data=Buffer_Fetch)
+    # # AS2.Save_File_ByteArray(path=path_f+"/"+file_name,Data=Buffer_Fetch)
 
